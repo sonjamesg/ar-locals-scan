@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,OpenBtn,Selected,MarkLost,extCheck,BwChips,ago} from './Members.jsx';
+const MONTH=30*864e5;const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at)<MONTH;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
  if(h._err)return <span className="err">{h._err}</span>;if(!h.bookwhen_customer_id)return <span className="muted">No CustomerID</span>;
@@ -28,7 +29,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   setRows(rs=>rs.map(r=>r._st==='queued'?{...r,_st:null}:r));const stopped=ctl.current.stop;setRun(r=>({...r,done:true,stopped}));
   onMsg({t:`${stopped?'Stopped':'Batch done'} — ${ok} checked, ${bad} errors`});if(mode==='range')setFrom(f=>f+list.length);}
  const busy=run&&!run.done;const ql=q.trim().toLowerCase();
- const isC=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';const shown=(rows||[]).filter(r=>sf==='all'||(sf==='cancelled'?isC(r):(!isC(r)&&r.bw_status==='ACTIVE'))).filter(r=>!ql||[r.first_name,r.last_name,r.email,r.bw_lcl].join(' ').toLowerCase().includes(ql));
+ const isC=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';const shown=(rows||[]).filter(r=>sf==='all'||(sf==='new'?isNew(r):sf==='cancelled'?isC(r):(!isC(r)&&r.bw_status==='ACTIVE'))).filter(r=>!ql||[r.first_name,r.last_name,r.email,r.bw_lcl].join(' ').toLowerCase().includes(ql));
  const unchecked=eligible.filter(r=>!r.bw_checked_at).length,active=(rows||[]).filter(r=>r.bw_status==='ACTIVE'&&!r.cancelled_at).length,cancelled=(rows||[]).filter(r=>r.cancelled_at||r.bw_status==='CANCELLED').length;
  if(sel)return <section className="panel"><h2>All members</h2><Selected h={sel} onClear={()=>setSel(null)} onUpdate={h=>{setSel(h);patch(h.id,h);}}><MarkLost h={sel} onMarked={h=>{setSel(h);patch(h.id,h);}}/></Selected></section>;
  return <section className="panel"><h2>All members</h2>
@@ -51,9 +52,9 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    <span className="bp-count">{run.i} / {run.total}</span><span className="bp-ok">✓ {run.ok}</span><span className="bp-bad">✕ {run.bad}</span></div>
    <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}
   <p className="muted batch-note">Uses the Check user extension, {WORKERS} members in parallel ({DELAY/1000}s pause per worker). Members without a CustomerID are skipped. Keep Bookwhen signed in.</p></div>
-  <div className="am-filter">{[['all','All'],['active','Active'],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}</div>
+  <div className="am-filter">{[['all','All'],['active','Active'],['new',`New (${(rows||[]).filter(isNew).length})`],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}</div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
-   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit" onClick={()=>setSel(h)}><MemberInfo h={h}/><Status h={h}/></button><OpenBtn h={h}/></li>)}
+   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit" onClick={()=>setSel(h)}><MemberInfo h={h}/>{isNew(h)&&<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>}<Status h={h}/></button><OpenBtn h={h}/></li>)}
    {shown.length>300&&<li className="muted">Showing 300 of {shown.length} — filter to narrow</li>}</ul>
  </section>;}

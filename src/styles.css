@@ -201,3 +201,4 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 
 .bw-cancel,.amc-st.bw-cancel,.chip-status.bw-cancel{color:#ff3b5c!important;background:#ff3b5c18;border-color:#ff3b5c66}
 .am-filter{display:flex;gap:8px;margin:10px 0}.am-stat.bad b{color:#ff3b5c}
+.new-badge{background:#1f7a3a;color:#fff;font-weight:700;padding:2px 8px;border-radius:999px;font-size:11px;margin:0 6px;align-self:center}
