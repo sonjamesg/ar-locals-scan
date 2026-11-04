@@ -19,3 +19,9 @@ Scan → UNKNOWN → type name → matches from local DB + Bookwhen → click �
 The desk shows a PIN pad before the scan screen. Set `DESK_PIN` in `.env` (see `.env.example`); falls back to `6767` if unset. Unlock lasts for the browser session (sessionStorage); use **🔒 Lock** to re-lock.
 
 **Security note:** the PIN is UI-only and is compiled into the frontend bundle. The Supabase RPCs (`lookup_card`, `link_card`, etc.) remain callable by anyone holding the anon key. Before exposing this on a public URL, replace it with real auth (Supabase Auth staff logins + RLS / RPCs restricted to `authenticated`).
+
+## Bookwhen email sync (pending)
+Gmail label **Bookwhen** (james@atlanticreach.co.uk) sync is scaffolded but **not yet parsing**: waiting on sample new-membership and cancellation emails.
+- `members.pending_card` — new member awaiting a physical card (shown on **Pending cards** tab; cleared automatically when a card is linked, or via `mark_card_issued`).
+- `members.cancelled_at` + `mark_member_cancelled(p_member_id)` — sets bw_status CANCELLED.
+- `bookwhen_email_log` — dedupe log keyed by Gmail message id.
