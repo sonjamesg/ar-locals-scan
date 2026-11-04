@@ -1,6 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
 import './styles.css';import {sb} from './lib.js';
-import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate,{lockDesk} from './components/PinGate.jsx';
+import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);
  const focus=()=>setTimeout(()=>inp.current?.focus(),0);useEffect(focus,[]);
  async function scan(e){e.preventDefault();const b=code.trim();if(!b)return;setMsg(null);
@@ -11,7 +11,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
   const{error}=await sb.rpc('link_card',{p_barcode:res.barcode,...p});if(error)return setMsg({err:1,t:error.message});
   setMsg({t:`Card linked to ${h.first_name} ${h.last_name}`});const{data}=await sb.rpc('lookup_card',{p_barcode:res.barcode});setRes({...data[0],barcode:res.barcode});focus();}
  const s=res?.status;
- return <div className="app"><Header/><button type="button" className="btn ghost lock-btn" onClick={lockDesk}>🔒 Lock</button>
+ return <div className="app"><Header/>
   <main className="main">
    <form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Waiting for barcode…" autoComplete="off" autoFocus className="scan-input"/>
