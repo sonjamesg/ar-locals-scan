@@ -81,3 +81,5 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .until{font:700 22px var(--mono);padding:14px 18px;border:1px solid #00e5c044;border-radius:12px;color:var(--ok);text-shadow:0 0 10px #00e5c055;background:#080b10}
 .add .btn{grid-column:1/-1;font:700 18px var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:16px}
 @media(max-width:900px){.add{grid-template-columns:1fr 1fr}}
+
+.bw-btn{text-decoration:none;display:inline-flex;align-items:center;margin-right:.5rem;white-space:nowrap}
