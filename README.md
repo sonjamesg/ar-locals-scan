@@ -55,3 +55,20 @@ That's it — it then runs forever on Supabase. Check logs in Supabase → Edge 
 ### Alternative: forwarding webhook
 Set secret `SYNC_SECRET`, then any inbound-email service (Cloudflare Email Workers, etc.) can POST `{"message_id","subject"}` with header `x-sync-secret` to
 `https://qpcqovuzmyxinozypxik.supabase.co/functions/v1/bookwhen-gmail-sync`. Same Locals-only filter applies.
+
+## Bookwhen → Locals email sync (forward-first)
+
+Only two email types are ever sent: **Membership started: LOCALS CARD** (→ Pending cards) and **LOCALS CARD cancel** (→ CANCELLED). The Edge Function `bookwhen-gmail-sync` re-checks this (Locals-only guard) and dedups via `bookwhen_email_log`. No Grok Bot / routines involved.
+
+**Endpoint:** `POST https://qpcqovuzmyxinozypxik.supabase.co/functions/v1/bookwhen-gmail-sync`
+Secret: header `x-sync-secret: <SYNC_SECRET>` (or `?secret=` for webhook services without headers). Accepts JSON `{subject, message_id}`, AgentMail/Postmark/Mailgun/SendGrid inbound payloads, or raw RFC822. `SYNC_SECRET` lives in Supabase Vault (`vault.secrets`, read via service-role-only `get_sync_secret()`); an Edge Function env secret of the same name overrides it. Read it in SQL editor: `select public.get_sync_secret();`
+
+### Setup (once, ~5 min)
+1. **Gmail filters** (james@): create two filters, action *Apply label `Locals-Sync`* (+ "also apply to matching conversations"):
+   - Subject: `"Membership started: LOCALS CARD"`
+   - Subject: `"LOCALS CARD" cancel`  (optionally add From: Bookwhen's sender address)
+2. **Relay** – script.google.com → New project (signed in as james@) → paste `scripts/gmail-forward.gs` → Project settings → Script properties: `SYNC_SECRET` = value from step above → run `install` once and approve. It runs every 5 min inside Google; nothing else to maintain.
+   - Alternative: if you use an inbound-email service with webhooks (AgentMail, Postmark, Mailgun), set the filter to *Forward to* that address and point its webhook at the endpoint with `?secret=`.
+
+### Optional: direct Gmail API polling
+Set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` (and `GMAIL_LABEL`) as Edge Function secrets; the pg_cron call then polls Gmail. Without them the cron call is a no-op.

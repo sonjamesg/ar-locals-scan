@@ -33,13 +33,27 @@ async function ingest(id: string, subject: string) {
   return { id, kind, email: p.email, result: data, error: error?.message };
 }
 Deno.serve(async (req) => {
-  const secret = Deno.env.get("SYNC_SECRET");
-  const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
-  // Webhook mode (forwarded email from any inbound-mail service): {message_id, subject}; requires SYNC_SECRET
-  if (body.subject) {
-    if (!secret || req.headers.get("x-sync-secret") !== secret) return new Response("forbidden", { status: 403 });
-    return Response.json(await ingest(body.message_id || crypto.randomUUID(), body.subject));
+  const secret = Deno.env.get("SYNC_SECRET") || (await sb.rpc("get_sync_secret")).data;
+  const url = new URL(req.url);
+  const ct = req.headers.get("content-type") || "";
+  let body: any = {};
+  if (req.method === "POST") {
+    if (ct.includes("json")) body = await req.json().catch(() => ({}));
+    else if (ct.includes("form")) body = Object.fromEntries((await req.formData().catch(() => new FormData())).entries());
+    else { const raw = await req.text(); body = { subject: raw.match(/^Subject:\s*(.+)$/mi)?.[1], message_id: raw.match(/^Message-ID:\s*(.+)$/mi)?.[1] }; }
   }
+  // Forward/inbound mode: AgentMail ({message:{subject,message_id}}), Postmark (Subject/MessageID),
+  // Mailgun/SendGrid form (subject, Message-Id), plain JSON {subject} or raw RFC822. Secret via x-sync-secret header or ?secret=
+  const m = body.message || body.data || body;
+  const subj = m.subject || m.Subject || body.subject;
+  if (subj || url.searchParams.has("secret") || req.headers.get("x-sync-secret")) {
+    const given = req.headers.get("x-sync-secret") || url.searchParams.get("secret");
+    if (!secret || given !== secret) return new Response("forbidden", { status: 403 });
+    if (!subj) return Response.json({ skipped: "no subject" });
+    const id = m.message_id || m.MessageID || m["Message-Id"] || body["Message-Id"] || crypto.randomUUID();
+    return Response.json(await ingest(String(id), String(subj).replace(/^\s*((fwd?|fw):\s*)+/i, "")));
+  }
+  if (!Deno.env.get("GMAIL_REFRESH_TOKEN")) return Response.json({ skipped: "gmail polling not configured (forward mode)" });
   const at = await token();
   const label = Deno.env.get("GMAIL_LABEL") || "Bookwhen";
   const q = `label:${label} subject:"LOCALS CARD" newer_than:${body.days || 3}d`;
