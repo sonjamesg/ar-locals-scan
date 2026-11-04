@@ -4,7 +4,8 @@ const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just 
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
  if(h._err)return <span className="err">{h._err}</span>;if(!h.bookwhen_customer_id)return <span className="muted">No CustomerID</span>;
  if(!h.bw_checked_at)return <span className="muted">Not checked</span>;
- return <span className={'bw-status '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><b>{h.bw_status||'?'}</b>{h.bw_lcl&&<> · {h.bw_lcl}</>}{h.bw_renews_at&&<> · renews {new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</>}<span className="muted"> · {ago(h.bw_checked_at)}</span></span>;}
+ const d=h.bw_renews_at&&new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+ return <span className="am-chips" title={'Checked '+ago(h.bw_checked_at)}><span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><i/>{h.bw_status||'?'}</span>{h.bw_lcl&&<span className="amc">{h.bw_lcl}</span>}{d&&<span className="amc">↻ {d}</span>}<span className="amc-ago">{ago(h.bw_checked_at)}</span></span>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const ctl=useRef({});
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
