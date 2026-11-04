@@ -121,3 +121,9 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .name-edit label{display:flex;flex-direction:column;gap:4px;font:12px var(--mono);color:var(--mut);text-transform:uppercase;letter-spacing:.1em;flex:1;min-width:160px}
 .name-edit input{font:inherit;font-size:18px;text-transform:none;letter-spacing:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0d12;color:var(--txt)}
 .name-edit .btn{min-height:48px;padding:0 20px;font-size:16px}.name-edit .ok{color:var(--cy);font-family:var(--mono)}.name-edit .err{color:#ff6b6b}
+
+.sel-h{justify-content:flex-start;gap:16px}.sel-back:hover{color:var(--cy);border-color:var(--cy)}
+.selected .name-edit{margin:0 22px 16px}.sel-extra{padding:0 22px 16px}
+.sel-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px 22px;border-top:1px solid #00e5c022}
+.sel-left,.sel-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.sel-right{margin-left:auto}
+.sel-foot .ok{color:var(--cy);font-family:var(--mono)}.sel-foot .err{color:#ff6b6b}

@@ -25,17 +25,19 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches'}){co
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {!busy&&q.trim().length>=2&&!hits.length&&<li className="muted">{emptyText}</li>}
    {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/></button><OpenBtn h={h}/></li>)}</ul></>;}
-export function NameEdit({h,onSaved}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
- useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));setSt('');},[h.id]);
- if(!h.id||h.src==='Bookwhen')return null;const dirty=f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim();
- async function save(){setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
-  if(error)return setSt('Error: '+error.message);setSt('✓ Saved');onSaved&&onSaved({...h,first_name:f.trim()||null,last_name:l.trim()||null});}
- return <form className="name-edit" onSubmit={e=>{e.preventDefault();if(dirty)save();}}>
+export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
+ useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));},[h.id]);useEffect(()=>{setSt('');},[h.id]);
+ const editable=h.id&&h.src!=='Bookwhen';const dirty=editable&&(f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim());
+ async function save(){if(!dirty){setSt('✓ No changes');return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
+  if(error)return setSt('Error: '+error.message);setSt('✓ Saved');onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
+ return <div className="selected"><div className="sel-h"><button className="sel-x sel-back" onClick={onClear} title="Back to results">← Back</button><span>// MEMBER DETAILS</span></div>
+ <div className="sel-body"><MemberInfo h={h}/><OpenBtn h={h}/></div>
+ {editable&&<form className="name-edit" onSubmit={e=>{e.preventDefault();save();}}>
   <label>First name<input value={f} onChange={e=>{setF(e.target.value);setSt('');}} placeholder="First name"/></label>
-  <label>Last name<input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name"/></label>
-  <button className="btn ghost" disabled={!dirty||st==='Saving…'}>Save name</button>{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}</form>;}
-export function Selected({h,onClear,onUpdate,children}){return <div className="selected"><div className="sel-h"><span>// SELECTED MEMBER</span><button className="sel-x" onClick={onClear} title="Clear selection">✕ Clear</button></div>
- <div className="sel-body"><MemberInfo h={h}/><OpenBtn h={h}/></div><NameEdit h={h} onSaved={onUpdate}/><div className="sel-acts">{children}</div></div>;}
+  <label>Last name<input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name"/></label></form>}
+ {extra&&<div className="sel-extra">{extra}</div>}
+ <div className="sel-foot"><div className="sel-left">{children}</div><div className="sel-right">{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
+  {editable&&<button className={'btn lg '+(dirty?'primary':'ghost')} disabled={st==='Saving…'} onClick={save}>Save</button>}</div></div></div>;}
 export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
  if(!h.id||h.src==='Bookwhen')return null;
  if(h.lost_card_at)return <span className="muted">⚠ Already on lost cards list</span>;
