@@ -49,7 +49,7 @@ export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[b
 
 const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
 if(typeof window!=='undefined'){window.addEventListener('message',e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY')window.__arExt=e.data.version;});window.postMessage({type:'AR_EXT_PING'},location.origin);}
-function extCheck(customerId){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
+export function extCheck(customerId){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId},location.origin);});}

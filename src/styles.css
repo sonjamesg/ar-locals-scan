@@ -139,3 +139,10 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .am-banner.warn{border-color:#ffb02055;background:#ffb0200d}.am-banner.warn b{color:var(--warn)}
 .add .am-banner{grid-column:1/-1;margin:0}
 .am-email{color:var(--cy2);font-family:var(--mono)}
+.batch{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:8px 0 12px}
+.batch label{display:flex;flex-direction:column;gap:4px;font-size:12px;opacity:.85}
+.batch select,.batch input{padding:8px 10px;border-radius:8px;border:1px solid #ccc;font-size:15px;min-width:90px}
+.batch-prog{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.batch-prog .bar{flex:1;height:8px;background:rgba(127,127,127,.2);border-radius:4px;overflow:hidden}
+.batch-prog .bar i{display:block;height:100%;background:#2a9d8f;transition:width .3s}
+.hit-row.checking{outline:2px solid #2a9d8f;border-radius:8px}

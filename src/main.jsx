@@ -1,6 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
 import './styles.css';import {sb} from './lib.js';
-import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';
+import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');
  const focus=()=>setTimeout(()=>inp.current?.focus(),0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
@@ -33,7 +33,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  const s=res?.status;
  return <div className="app"><Header/>
   <main className="main">
-   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button></nav>
+   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{setView('all');setMsg(null);}}>All members</button></nav>
    {view==='scan'&&<><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Waiting for barcode…" autoComplete="off" autoFocus className="scan-input"/>
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
@@ -43,6 +43,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')}/>}
    {view==='add'&&<AddMemberPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
+   {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
   </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span>Scanner <b>● Live</b> · v2.0</span></footer></div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));
