@@ -7,7 +7,7 @@ export const bwTerm=h=>{const e=(h.email||'').trim();if(e.includes('@'))return e
 export const bwSearchUrl=t=>`https://atlanticreach.bookwhen.com/customers/list?filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=&filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=2qx0sob92cv9&order=last_seen&reverse=0&search_text=${encodeURIComponent(t)}`;
 export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)return null;return <div className="bw-acts" onClick={e=>e.stopPropagation()}>
  {t&&<a className="btn ghost bw-btn" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen ↗</a>}
- {h.bookwhen_customer_id&&<a className="btn ghost bw-btn" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships ↗</a>}</div>;}
+ {h.bookwhen_customer_id&&<a className="btn primary bw-btn" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships ↗</a>}</div>;}
 export function MemberInfo({h}){const n=nameOf(h);return <div className="hit-info">
  <span className="hit-name">{n||h.email||'(no name)'}</span>
  {n&&h.email&&<span className="hit-email">{h.email}</span>}
