@@ -3,7 +3,11 @@ export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURI
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
 export const nameOf=h=>{const n=[h.first_name,h.last_name].filter(x=>!ph(x)).join(' ');return n||null;};
 export const label=h=>nameOf(h)||h.email||'(no name)';
-export function OpenBtn({h}){return h.bookwhen_customer_id?<a className="btn ghost" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Open memberships</a>:null;}
+export const bwTerm=h=>{const e=(h.email||'').trim();if(e.includes('@')){const lp=e.split('@')[0];const m=lp.match(/^[a-z]+/i);return (m&&m[0].length>=3?m[0]:lp).toLowerCase();}const n=nameOf(h);return n?n.split(' ')[0]:'';};
+export const bwSearchUrl=t=>`https://atlanticreach.bookwhen.com/customers/list?filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=&filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=2qx0sob92cv9&order=last_seen&reverse=0&search_text=${encodeURIComponent(t)}`;
+export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)return null;return <div className="bw-acts" onClick={e=>e.stopPropagation()}>
+ {t&&<a className="btn ghost bw-btn" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen ↗</a>}
+ {h.bookwhen_customer_id&&<a className="bw-sub" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">memberships</a>}</div>;}
 export function MemberInfo({h}){const n=nameOf(h);return <div className="hit-info">
  <span className="hit-name">{n||h.email||'(no name)'}</span>
  {n&&h.email&&<span className="hit-email">{h.email}</span>}
@@ -21,5 +25,5 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches'}){co
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {!busy&&q.trim().length>=2&&!hits.length&&<li className="muted">{emptyText}</li>}
    {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/></button><OpenBtn h={h}/></li>)}</ul></>;}
-export function Selected({h,onClear,children}){return <div className="selected"><div className="sel-h">// SELECTED MEMBER</div>
- <div className="hit-row"><MemberInfo h={h}/><OpenBtn h={h}/></div><div className="row">{children}<button className="btn ghost lg" onClick={onClear}>Clear</button></div></div>;}
+export function Selected({h,onClear,children}){return <div className="selected"><div className="sel-h"><span>// SELECTED MEMBER</span><button className="sel-x" onClick={onClear} title="Clear selection">✕ Clear</button></div>
+ <div className="sel-body"><MemberInfo h={h}/><OpenBtn h={h}/></div><div className="sel-acts">{children}</div></div>;}

@@ -9,13 +9,13 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[sel,setSel]=useS
   {sel?<Selected h={sel} onClear={()=>setSel(null)}><button className="btn primary lg" onClick={()=>setAsk({t:'link'})}>Done</button></Selected>
    :<SearchPick onPick={setSel} emptyText="No matches — add them below"/>}
   {!sel&&(!add?<button className="btn ghost" onClick={()=>setAdd(true)}>+ Not found? Add new member</button>:
-  <form className="add" onSubmit={addNew}><div className="add-h">// NEW MEMBER · CARD <code>{barcode}</code></div>
+  <form className="add" onSubmit={addNew}><div className="add-h"><span>// NEW MEMBER</span><span className="add-card">CARD <code>{barcode}</code></span></div>
    <label>First name<input name="fn" placeholder="e.g. Jane" required autoFocus/></label>
    <label>Last name<input name="ln" placeholder="e.g. Smith" required/></label>
-   <label>Card issue date<input type="date" value={iss} max={today} onChange={e=>setIss(e.target.value)} required/></label>
-   <label>Valid until<output className="until">{until?gb(until):'—'}</output></label>
-   <label>Email <i>(optional)</i><input name="em" type="email" placeholder="name@example.com"/></label>
-   <div className="row"><button className="btn primary">Done</button><button type="reset" className="btn ghost" onClick={()=>{setIss(today);setAdd(false);}}>Clear</button></div></form>)}
+   <label className="span2">Card issue date<input type="date" value={iss} max={today} onChange={e=>setIss(e.target.value)} required/></label>
+   <label className="span2">Valid until<output className="until">{until?gb(until):'—'}</output></label>
+   <label className="span4">Email <i>(optional)</i><input name="em" type="email" placeholder="name@example.com"/></label>
+   <div className="add-acts"><button type="reset" className="btn ghost" onClick={()=>{setIss(today);setAdd(false);}}>Clear</button><button className="btn primary">Done</button></div></form>)}
   {ask?.t==='link'&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(null)} onYes={()=>go(()=>onLink(sel))}>
    <p>Link card <code>{barcode}</code> to:</p><MemberInfo h={sel}/></Confirm>}
   {ask?.t==='add'&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(null)} onYes={()=>go(()=>onAdd(ask.d))}>

@@ -33,7 +33,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  const s=res?.status;
  return <div className="app"><Header/>
   <main className="main">
-   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Lost card</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button></nav>
+   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button></nav>
    {view==='scan'&&<><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Waiting for barcode…" autoComplete="off" autoFocus className="scan-input"/>
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>

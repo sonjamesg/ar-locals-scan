@@ -2,7 +2,7 @@ import {useEffect,useState} from 'react';import {sb} from '../lib.js';import {Se
 export function LostPanel({onDone,onMsg}){const[sel,setSel]=useState(null);const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
  async function mark(){setBusy(true);const{error}=await sb.rpc('mark_card_lost',{p_member_id:sel.id});setBusy(false);setAsk(false);
   if(error)return onMsg({err:1,t:error.message});onMsg({t:`${label(sel)} added to the lost cards list`});onDone();}
- return <section className="panel"><h2>Lost card — find member</h2>
+ return <section className="panel"><h2>Search users</h2>
   {sel?<Selected h={sel} onClear={()=>setSel(null)}>{sel.lost_card_at?<span className="muted">Already on lost cards list</span>:<button className="btn primary lg" onClick={()=>setAsk(true)}>Mark as lost</button>}</Selected>
    :<SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members"/>}
   {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Mark card as lost / needs replacement for:</p><MemberInfo h={sel}/></Confirm>}
