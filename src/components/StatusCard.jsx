@@ -1,7 +1,7 @@
 import {left,fmt} from '../lib.js';
 const C={valid:'STATUS 200 · ACCESS OK',expired:'STATUS 410 · EXPIRED',unknown:'STATUS 404 · NOT LINKED'};const L={valid:['✓','VALID'],expired:['!','EXPIRED'],unknown:['?','UNKNOWN CARD']};
 export default function StatusCard({res}){
- if(!res)return <section className="status idle" data-code="SYS · ONLINE"><i className="corner tl"/><i className="corner tr"/><i className="corner bl"/><i className="corner br"/><div className="idle-icon">▮▯▮▮▯▮</div><div className="idle-t">AWAITING SCAN</div><div className="idle-s">Scan a locals card with the barcode scanner</div></section>;
+ if(!res)return <section className="status idle" data-code="SYS · ONLINE"><i className="corner tl"/><i className="corner tr"/><i className="corner bl"/><i className="corner br"/><i className="reticle"/><div className="idle-icon">▮▯▮▮▯▮</div><div className="idle-t">AWAITING SCAN</div><div className="idle-s">Scan a locals card with the barcode scanner</div></section>;
  const s=res.status||'unknown';const[ic,lab]=L[s]||L.unknown;
  return <section className={`status ${s}`} data-code={C[s]||C.unknown} key={res.barcode+s}><div className="st-icon">{ic}</div><div className="st-body">
   <div className="st-label">{lab}</div>

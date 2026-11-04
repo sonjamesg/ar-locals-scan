@@ -72,3 +72,5 @@ Secret: header `x-sync-secret: <SYNC_SECRET>` (or `?secret=` for webhook service
 
 ### Optional: direct Gmail API polling
 Set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` (and `GMAIL_LABEL`) as Edge Function secrets; the pg_cron call then polls Gmail. Without them the cron call is a no-op.
+
+After updates, if the installed PWA looks stale: Lock→unlock or close and reopen the app (service worker cache is versioned in public/sw.js).
