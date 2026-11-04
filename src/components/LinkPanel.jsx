@@ -7,7 +7,7 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[q,setQ]=useState
   setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,src:'Bookwhen'}))]);setBusy(false);},250);return()=>clearTimeout(t);},[q]);
  const today=new Date().toISOString().slice(0,10);const[iss,setIss]=useState(today);
  const until=iss?addYear(iss):'';
- const addNew=e=>{e.preventDefault();const f=new FormData(e.target);onAdd({name:f.get('nm'),email:f.get('em'),issued_on:iss});};
+ const addNew=e=>{e.preventDefault();const f=new FormData(e.target);onAdd({first_name:f.get('fn'),last_name:f.get('ln'),email:f.get('em'),issued_on:iss});};
  return <section className="panel"><h2>Link card <code>{barcode}</code> to a member</h2>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search by name or email…"/>
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
@@ -19,7 +19,8 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[q,setQ]=useState
     {h.bookwhen_customer_id&&<a className="btn ghost" href={`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(h.bookwhen_customer_id)}/subscriptions`} target="_blank" rel="noopener noreferrer">Open memberships</a>}</li>)}</ul>
   {!add?<button className="btn ghost" onClick={()=>setAdd(true)}>+ Not found? Add new member</button>:
   <form className="add" onSubmit={addNew}><div className="add-h">// NEW MEMBER · CARD <code>{barcode}</code></div>
-   <label>Full name<input name="nm" placeholder="e.g. Jane Smith" required autoFocus defaultValue={q.trim()}/></label>
+   <label>First name<input name="fn" placeholder="e.g. Jane" required autoFocus/></label>
+   <label>Last name<input name="ln" placeholder="e.g. Smith" required/></label>
    <label>Card issue date<input type="date" value={iss} max={today} onChange={e=>setIss(e.target.value)} required/></label>
    <label>Valid until<output className="until">{until?new Date(until).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—'}</output></label>
    <label>Email <i>(optional)</i><input name="em" type="email" placeholder="name@example.com"/></label>

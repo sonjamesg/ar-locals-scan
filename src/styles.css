@@ -74,7 +74,7 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .lock-btn{margin-left:8px;align-self:center;min-height:48px;padding:10px 18px;font:600 14px var(--mono);letter-spacing:.1em;text-transform:uppercase}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 
-.add{grid-template-columns:2fr 1fr 1fr 1.6fr;align-items:end;padding:18px;border:1px dashed #00e5c055;border-radius:14px;background:#00e5c008}
+.add{grid-template-columns:1fr 1fr 1fr 1fr 1.4fr;align-items:end;padding:18px;border:1px dashed #00e5c055;border-radius:14px;background:#00e5c008}
 .add-h{grid-column:1/-1;font:700 12px var(--mono);letter-spacing:.22em;color:var(--cy)}
 .add label{display:flex;flex-direction:column;gap:6px;font:600 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.add label i{text-transform:none;font-style:normal;opacity:.7}
 .add input[type=date]{color-scheme:dark}
