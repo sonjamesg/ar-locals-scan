@@ -132,3 +132,10 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .bw-check .bw-btn{min-height:44px;height:44px;padding:0 18px;font-size:14px}
 .bw-status{font-family:var(--mono);font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid currentColor}
 .bw-ok{color:#2fbf71}.bw-bad{color:#e5534b}
+
+.am-banner{display:flex;flex-direction:column;gap:4px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);margin:12px 0;font-size:15px}
+.am-banner b{font:700 13px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+.am-banner.ok{border-color:#22ff9a44;background:#22ff9a0d}.am-banner.ok b{color:var(--ok)}
+.am-banner.warn{border-color:#ffb02055;background:#ffb0200d}.am-banner.warn b{color:var(--warn)}
+.add .am-banner{grid-column:1/-1;margin:0}
+.am-email{color:var(--cy2);font-family:var(--mono)}

@@ -21,12 +21,19 @@ export default function AddMemberPanel({onMsg}){
  return <section className="panel"><h2>Add member</h2>
   <form onSubmit={check} className="row"><input className="big-input" type="email" autoFocus value={f.email} onChange={e=>{set('email')(e);setChecked(false);setExisting(null);}} placeholder="Email (required) — checks for existing member" autoComplete="off"/><button className="btn primary lg" disabled={!okEmail||busy}>Check email</button>{(f.email||checked)&&<button type="button" className="btn ghost lg" onClick={reset}>Clear</button>}</form>
   {checked&&<>
-   <div className="row"><input className="big-input" value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off"/><label className="muted">Issued <input type="date" value={f.issued_on} onChange={set('issued_on')}/></label></div>
-   {existing?.length?<><p className="muted">This email is already in the system — link the card to them instead of creating a duplicate:</p>
+   {existing?.length?<><div className="am-banner warn"><b>Already a member</b><span>This email is in the system — link the card instead of creating a duplicate.</span></div>
+    <div className="row"><input className="big-input" value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off"/><label className="muted">Issued <input type="date" value={f.issued_on} onChange={set('issued_on')}/></label></div>
     <ul className="hits">{existing.map(h=><li key={h.id} className="hit-row"><MemberInfo h={h}/><div className="row"><OpenBtn h={h}/><button className="btn primary" disabled={!cardOk} onClick={()=>setAsk({member:h})}>Link card</button></div></li>)}</ul></>
-   :<><p className="muted">No member with this email — new member.</p>
-    <div className="row"><input className="big-input" value={f.first_name} onChange={set('first_name')} placeholder="First name"/><input className="big-input" value={f.last_name} onChange={set('last_name')} placeholder="Last name"/></div>
-    <div className="row" style={{justifyContent:'flex-end'}}><button className="btn primary lg" disabled={!cardOk||!f.first_name.trim()||!f.last_name.trim()} onClick={()=>setAsk({})}>Done</button></div></>}
+   :<form className="add" onSubmit={e=>{e.preventDefault();if(cardOk&&f.first_name.trim()&&f.last_name.trim())setAsk({});}}>
+    <div className="add-h"><span>// NEW MEMBER</span><span className="add-card">{f.barcode.trim()?<>CARD <code>{f.barcode.trim()}</code></>:'NO CARD YET'}</span></div>
+    <div className="am-banner ok span4"><b>✓ Email is free</b><span>No member with this email — creating a new member.</span></div>
+    <label>First name<input value={f.first_name} onChange={set('first_name')} placeholder="e.g. Jane" required autoFocus/></label>
+    <label>Last name<input value={f.last_name} onChange={set('last_name')} placeholder="e.g. Smith" required/></label>
+    <label className="span4">Email<output className="until am-email">{email}</output></label>
+    <label className="span4">Card barcode<input value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off" required/></label>
+    <label>Card issue date<input type="date" value={f.issued_on} max={today()} onChange={set('issued_on')} required/></label>
+    <label>Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'—'}</output></label>
+    <div className="add-acts"><button type="button" className="btn ghost" onClick={reset}>Clear</button><button className="btn primary" disabled={!cardOk||!f.first_name.trim()||!f.last_name.trim()}>Done</button></div></form>}
   </>}
   {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(null)} onYes={save}>
    {ask.member?<><p>Link card <code>{f.barcode.trim()}</code> to:</p><MemberInfo h={ask.member}/></>
