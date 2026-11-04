@@ -31,8 +31,11 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
  async function save(){if(!dirty){setSt('✓ No changes');return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
   if(error)return setSt('Error: '+error.message);setSt('✓ Saved');onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
  return <div className="selected"><div className="sel-h"><button className="sel-x sel-back" onClick={onClear} title="Back to results">← Back</button><span>// MEMBER DETAILS</span></div>
- <div className="sel-body"><MemberInfo h={h}/><OpenBtn h={h}/></div>
- <CheckUser h={h} onUpdate={onUpdate}/>
+ <div className="md-head"><div className="md-avatar">{(nameOf(h)||h.email||'?').split(/[\s@.]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join('')}</div>
+  <div className="md-id"><div className="md-name">{nameOf(h)||(h.email||'(no name)').split('@')[0]}</div>{h.email&&<div className="md-email">{h.email}</div>}
+   <div className="md-tags">{h.card_barcode&&<span className="chip">Card {h.card_barcode}</span>}{h.membership_ends_at&&<span className="chip">Ends {h.membership_ends_at}</span>}{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}</div></div></div>
+ <div className="md-panel"><div className="md-label">Bookwhen membership</div>
+  <CheckUser h={h} onUpdate={onUpdate} actions={<OpenBtn h={h}/>}/></div>
  {editable&&<form className="name-edit" onSubmit={e=>{e.preventDefault();save();}}>
   <label>First name<input value={f} onChange={e=>{setF(e.target.value);setSt('');}} placeholder="First name"/></label>
   <label>Last name<input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name"/></label></form>}
@@ -53,9 +56,9 @@ export function extCheck(customerId){return new Promise(ok=>{const reqId=Math.ra
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId},location.origin);});}
-export function CheckUser({h,onUpdate}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
+export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);
- if(!h.id||h.src==='Bookwhen')return null;
+ if(!h.id||h.src==='Bookwhen')return actions?<div className="md-actions">{actions}</div>:null;
  const v=r||(h.bw_checked_at?h:null);
  async function run(){setBusy(true);setErr('');
   if(!window.__arExt){setBusy(false);window.open(bwUrl(h.bookwhen_customer_id),'_blank','noopener');setErr('Extension not installed — opened Memberships to check manually');return;}
@@ -65,8 +68,9 @@ export function CheckUser({h,onUpdate}){const[r,setR]=useState(null);const[busy,
   setBusy(false);if(error){setErr(error.message);return;}
   const body={...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status};setR(body);onUpdate&&onUpdate({...h,...body});}
  const cls=v?(v.bw_status==='ACTIVE'?'bw-ok':'bw-bad'):'';
+ const fmt=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
  return <div className="bw-check">
-  <button type="button" className="btn primary bw-btn" onClick={run} disabled={busy||!h.bookwhen_customer_id} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':'No Bookwhen ID — use Open in Bookwhen'}>{busy?'Checking…':'Check user'}</button>
-  {v&&<span className={'bw-status '+cls}><b>{v.bw_status||'?'}</b>{v.bw_lcl&&<> · {v.bw_lcl}</>}{v.bw_renews_at&&<> · renews {new Date(v.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</>}<span className="muted"> · checked {ago(v.bw_checked_at)}</span></span>}
-  {err&&<span className="err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}</span>}
+  <div className="md-chips">{v?<><span className={'chip chip-status '+cls}><i/>{v.bw_status||'UNKNOWN'}</span>{v.bw_lcl&&<span className="chip"><em>LCL</em>{v.bw_lcl.replace(/^LCL/,'')}</span>}{v.bw_renews_at&&<span className="chip"><em>Renews</em>{fmt(v.bw_renews_at)}</span>}<span className="md-checked">Checked {ago(v.bw_checked_at)}</span></>:<span className="md-checked">Not checked yet</span>}</div>
+  {err&&<div className="err md-err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}</div>}
+  <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy||!h.bookwhen_customer_id} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':'No Bookwhen ID — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>
  </div>;}
