@@ -214,3 +214,20 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .batch{flex-wrap:nowrap;gap:10px}.batch label{flex-shrink:1;min-width:0}.batch select,.batch input{min-width:0;height:40px}.batch .btn.lg{height:40px;white-space:nowrap;flex-shrink:0}
 .am-filter{flex-wrap:nowrap;overflow-x:auto;gap:6px}.am-filter .btn{white-space:nowrap;flex-shrink:0;padding:6px 12px}
 @media(max-width:640px){.am-stats{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.am-stat{padding:6px}.am-stat b{font-size:15px}.am-stat span{font-size:9px}}
+/* Scan desk polish */
+body::before{background-image:linear-gradient(#00e5c008 1px,transparent 1px),linear-gradient(90deg,#00e5c008 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 40%,#000 15%,transparent 70%)}
+.main{position:relative;z-index:1}
+.scan{position:relative}
+.scan::before{content:"";position:absolute;left:50%;top:40%;width:900px;height:520px;transform:translate(-50%,-50%);pointer-events:none;z-index:-1;background:radial-gradient(closest-side,#00e5c00f,transparent)}
+.scan-row{gap:12px;align-items:stretch}
+.scan-input{font-size:34px;padding:18px 24px;background:linear-gradient(180deg,#05070a,#0a0e13);border-color:#1d2733;box-shadow:inset 0 2px 8px #0008}
+.scan-row .btn.lg{min-width:150px;letter-spacing:.18em;font-weight:800}
+.status.idle{background:linear-gradient(180deg,#0d1218e6,#080b10f0);border-color:#00e5c030;box-shadow:inset 0 1px 0 #ffffff0a,0 0 50px #00e5c010,0 30px 80px #0008;gap:14px;min-height:320px}
+.status.idle::before{color:var(--cy);opacity:.55;letter-spacing:.28em}
+.status.idle::after{height:1px;opacity:.7;box-shadow:0 0 12px var(--cy)}
+.idle-icon{font-size:48px;opacity:.9;text-shadow:0 0 14px #00e5c099;margin-bottom:4px}
+.idle-t{font-size:34px;letter-spacing:.28em}
+.idle-s{font-size:16px;color:var(--mut);letter-spacing:.04em}
+.corner{width:22px;height:22px;border-width:1.5px;opacity:.65;filter:drop-shadow(0 0 4px #00e5c080)}
+.corner.tl,.corner.tr{top:14px}.corner.bl,.corner.br{bottom:14px}.corner.tl,.corner.bl{left:14px}.corner.tr,.corner.br{right:14px}
+@media(prefers-reduced-motion:reduce){.status.idle::after{display:none}}
