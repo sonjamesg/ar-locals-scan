@@ -8,6 +8,9 @@ export const bwSearchUrl=t=>`https://atlanticreach.bookwhen.com/customers/list?f
 export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)return null;return <div className="bw-acts" onClick={e=>e.stopPropagation()}>
  {t&&<a className="btn ghost bw-btn" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen ↗</a>}
  {h.bookwhen_customer_id&&<a className="btn primary bw-btn" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships ↗</a>}</div>;}
+export const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
+export function BwChips({h}){if(!h.bw_checked_at)return null;const d=h.bw_renews_at&&new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+ return <span className="am-chips" title={'Checked '+ago(h.bw_checked_at)}><span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><i/>{h.bw_status||'?'}</span>{h.bw_lcl&&<span className="amc">{h.bw_lcl}</span>}{d&&<span className="amc">↻ {d}</span>}<span className="amc-ago">{ago(h.bw_checked_at)}</span></span>;}
 export function MemberInfo({h}){const n=nameOf(h);return <div className="hit-info">
  <span className="hit-name">{n||h.email||'(no name)'}</span>
  {n&&h.email&&<span className="hit-email">{h.email}</span>}
@@ -24,7 +27,7 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches'}){co
  return <><input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search by name or email…"/>
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {!busy&&q.trim().length>=2&&!hits.length&&<li className="muted">{emptyText}</li>}
-   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/></button><OpenBtn h={h}/></li>)}</ul></>;}
+   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/><BwChips h={h}/></button><OpenBtn h={h}/></li>)}</ul></>;}
 export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
  useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));},[h.id]);useEffect(()=>{setSt('');},[h.id]);
  const editable=h.id&&h.src!=='Bookwhen';const dirty=editable&&(f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim());
@@ -50,7 +53,6 @@ export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[b
  return <><button type="button" className="btn ghost lg" onClick={()=>setAsk(true)}>Mark as lost</button>{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={h}/><p className="muted">They'll be added to the Lost cards list for a replacement.</p></Confirm>}</>;}
 
-const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
 if(typeof window!=='undefined'){window.addEventListener('message',e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY')window.__arExt=e.data.version;});window.postMessage({type:'AR_EXT_PING'},location.origin);}
 export function extCheck(customerId){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
