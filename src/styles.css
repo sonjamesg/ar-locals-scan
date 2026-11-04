@@ -198,3 +198,6 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .amc-pend,.chip-pend{background:#fff4d6;color:#8a5a00;border:1px solid #f0d58a}
 .chip-cancel{background:#fde8e8;color:#a32020;border:1px solid #f3b5b5}
 .md-cancel{background:#fde8e8;color:#a32020;border:1px solid #f3b5b5;border-radius:10px;padding:10px 14px;margin:8px 0 12px;font-weight:600}
+
+.bw-cancel,.amc-st.bw-cancel,.chip-status.bw-cancel{color:#ff3b5c!important;background:#ff3b5c18;border-color:#ff3b5c66}
+.am-filter{display:flex;gap:8px;margin:10px 0}.am-stat.bad b{color:#ff3b5c}
