@@ -39,7 +39,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    <div className="am-stat warn"><b>{unchecked}</b><span>Unchecked</span></div>
    <div className="am-stat ok"><b>{active}</b><span>Active</span></div>
    <div className="am-stat bad"><b>{cancelled}</b><span>Cancelled</span></div></div>}
-  <div className="batch-card"><div className="batch">
+  <div className="batch-card"><div className="batch" title={`Uses the Check user extension, ${WORKERS} members in parallel (${DELAY/1000}s pause per worker). Members without a CustomerID are looked up by email (CustomerID saved). Keep Bookwhen signed in.`}>
    <label>Batch size<select value={size} onChange={e=>setSize(e.target.value)} disabled={busy}>{['5','10','25','50','100','200'].map(v=><option key={v}>{v}</option>)}<option value="custom">Custom…</option></select></label>
    {size==='custom'&&<label>Count<input type="number" min="1" max="200" value={custom} onChange={e=>setCustom(e.target.value)} disabled={busy}/></label>}
    <label>Which<select value={mode} onChange={e=>setMode(e.target.value)} disabled={busy}><option value="unchecked">Next unchecked</option><option value="range">Start from #</option></select></label>
@@ -51,7 +51,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   {run&&<div className={'batch-prog'+(run.done?' done':'')}><div className="bp-top"><span className="bp-label">{run.done?(run.stopped?'Stopped':'Done'):run.paused?'Paused':'Checking…'}</span>
    <span className="bp-count">{run.i} / {run.total}</span><span className="bp-ok">✓ {run.ok}</span><span className="bp-bad">✕ {run.bad}</span></div>
    <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}
-  <p className="muted batch-note">Uses the Check user extension, {WORKERS} members in parallel ({DELAY/1000}s pause per worker). Members without a CustomerID are looked up by email (CustomerID saved). Keep Bookwhen signed in.</p></div>
+  </div>
   <div className="am-filter">{[['all','All'],['active','Active'],['new',`New (${(rows||[]).filter(isNew).length})`],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}</div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
