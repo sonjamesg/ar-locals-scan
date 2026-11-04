@@ -1,17 +1,19 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useRef,useEffect} from 'react';
 const PIN=String(import.meta.env.DESK_PIN||import.meta.env.VITE_DESK_PIN||'6767');
-const KEY='ar_desk_unlocked';
+const KEY='ar_desk_unlocked';const N=PIN.length;
 export const lockDesk=()=>{sessionStorage.removeItem(KEY);location.reload();};
 export default function PinGate({children}){
- const[ok,setOk]=useState(sessionStorage.getItem(KEY)==='1');const[v,setV]=useState('');const[err,setErr]=useState(false);
- const submit=(val=v)=>{if(val===PIN){sessionStorage.setItem(KEY,'1');setOk(true);}else{setErr(true);setV('');}};
- const press=k=>{setErr(false);if(k==='del')return setV(x=>x.slice(0,-1));if(k==='ok')return submit();const n=(v+k).slice(0,8);setV(n);if(n.length===PIN.length&&n===PIN)submit(n);};
- useEffect(()=>{if(ok)return;const h=e=>{if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('del');else if(e.key==='Enter')press('ok');};window.addEventListener('keydown',h);return()=>window.removeEventListener('keydown',h);});
+ const[ok,setOk]=useState(sessionStorage.getItem(KEY)==='1');const[d,setD]=useState(Array(N).fill(''));const[err,setErr]=useState(false);const refs=useRef([]);
+ useEffect(()=>{if(!ok)refs.current[0]?.focus();},[ok]);
+ const check=arr=>{if(arr.join('')===PIN){sessionStorage.setItem(KEY,'1');setOk(true);}else{setErr(true);setD(Array(N).fill(''));setTimeout(()=>refs.current[0]?.focus(),0);}};
+ const set=(i,val)=>{const c=val.replace(/\D/g,'').slice(-1);const a=[...d];a[i]=c;setD(a);setErr(false);if(c&&i<N-1)refs.current[i+1].focus();if(c&&a.every(x=>x))check(a);};
+ const key=(i,e)=>{if(e.key==='Backspace'&&!d[i]&&i>0){e.preventDefault();const a=[...d];a[i-1]='';setD(a);refs.current[i-1].focus();}};
+ const paste=e=>{const t=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,N).split('');if(t.length){e.preventDefault();const a=Array(N).fill('').map((_,i)=>t[i]||'');setD(a);if(t.length===N)check(a);else refs.current[t.length].focus();}};
  if(ok)return children;
- return <div className="pin-screen"><div className="pin-box">
-  <img src="/logo.png" alt="Atlantic Reach" className="pin-logo" onError={e=>e.target.style.display='none'}/>
-  <h1>Reception desk</h1><p>Enter staff PIN</p>
-  <div className={`pin-dots ${err?'shake':''}`}>{Array.from({length:PIN.length}).map((_,i)=><span key={i} className={i<v.length?'on':''}/>)}</div>
-  {err&&<div className="pin-err">Incorrect PIN — try again</div>}
-  <div className="pin-pad">{['1','2','3','4','5','6','7','8','9','del','0','ok'].map(k=><button key={k} type="button" onClick={()=>press(k)} className={`pin-key ${k.length>1?'fn':''}`}>{k==='del'?'⌫':k==='ok'?'Enter':k}</button>)}</div>
+ return <div className="pin-screen" role="dialog" aria-modal="true" aria-labelledby="pin-title"><div className="pin-box">
+  <img src="/ar-logo.png" alt="Atlantic Reach" className="pin-logo"/>
+  <h1 id="pin-title">Reception Desk</h1><p>Enter your staff PIN to continue</p>
+  <div className={`pin-digits ${err?'shake':''}`} onPaste={paste}>{d.map((v,i)=><input key={i} ref={el=>refs.current[i]=el} value={v} onChange={e=>set(i,e.target.value)} onKeyDown={e=>key(i,e)} onFocus={e=>e.target.select()} inputMode="numeric" type="password" maxLength={1} autoComplete="off" aria-label={`PIN digit ${i+1}`} className={`pin-digit ${err?'bad':''}`}/>)}</div>
+  <div className="pin-err" aria-live="polite">{err?'Incorrect PIN — please try again':'\u00a0'}</div>
+  <div className="pin-foot">Atlantic Reach Leisure · Staff only</div>
  </div></div>;}
