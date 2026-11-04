@@ -20,6 +20,12 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  async function link(h){const p=h.src==='Local'?{p_member_id:h.id}:{p_first_name:h.first_name,p_last_name:h.last_name,p_email:h.email,p_bookwhen_customer_id:h.bookwhen_customer_id,p_ends_at:h.membership_ends_at};
   const{error}=await sb.rpc('link_card',{p_barcode:res.barcode,...p});if(error)return setMsg({err:1,t:error.message});
   setMsg({t:`Card linked to ${h.first_name} ${h.last_name}`});const{data}=await sb.rpc('lookup_card',{p_barcode:res.barcode});setRes({...data[0],barcode:res.barcode});focus();}
+ async function addNew({name,email,issued_on}){const b=res.barcode;let r=await sb.rpc('add_member_with_card',{p_full_name:name,p_barcode:b,p_issued_on:issued_on,p_email:email||null});
+  if(r.error&&/function|schema cache|PGRST202/i.test(r.error.message+r.error.code)){ // fallback until migration 0002 applied
+   const n=name.trim().split(/\s+/);const[y,m,d]=issued_on.split('-').map(Number);const e=new Date(Date.UTC(y+1,m-1,d));if(e.getUTCMonth()!==m-1)e.setUTCDate(0);
+   r=await sb.rpc('link_card',{p_barcode:b,p_first_name:n[0],p_last_name:n.slice(1).join(' ')||'-',p_email:email||null,p_ends_at:e.toISOString().slice(0,10)});
+   if(!r.error)r=await sb.rpc('lookup_card',{p_barcode:b});}
+  if(r.error)return setMsg({err:1,t:r.error.message});setMsg({t:`Added ${name.trim()} — card ${b} linked`});setRes({...(r.data?.[0]||{status:'unknown'}),barcode:b});focus();}
  const s=res?.status;
  return <div className="app"><Header/>
   <main className="main">
@@ -28,7 +34,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
    <StatusCard res={res}/>
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
-   {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
+   {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link} onAdd={addNew}/>}
   </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span>Scanner <b>● Live</b> · v2.0</span></footer></div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));
 createRoot(document.getElementById('root')).render(<PinGate><App/></PinGate>);
