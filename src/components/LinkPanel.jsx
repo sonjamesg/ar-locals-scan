@@ -6,7 +6,7 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[sel,setSel]=useS
  const go=async fn=>{setBusy(true);try{await fn();}finally{setBusy(false);setAsk(null);}};
  const addNew=e=>{e.preventDefault();const f=new FormData(e.target);setAsk({t:'add',d:{first_name:f.get('fn'),last_name:f.get('ln'),email:f.get('em'),issued_on:iss}});};
  return <section className="panel"><h2>Link card <code>{barcode}</code> to a member</h2>
-  {sel?<Selected h={sel} onClear={()=>setSel(null)}><button className="btn primary lg" onClick={()=>setAsk({t:'link'})}>Done</button></Selected>
+  {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><button className="btn primary lg" onClick={()=>setAsk({t:'link'})}>Done</button></Selected>
    :<SearchPick onPick={setSel} emptyText="No matches — add them below"/>}
   {!sel&&(!add?<button className="btn ghost" onClick={()=>setAdd(true)}>+ Not found? Add new member</button>:
   <form className="add" onSubmit={addNew}><div className="add-h"><span>// NEW MEMBER</span><span className="add-card">CARD <code>{barcode}</code></span></div>

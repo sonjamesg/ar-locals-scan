@@ -114,3 +114,10 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .add-acts{grid-column:1/-1;display:flex;justify-content:flex-end;gap:12px;padding-top:6px}
 .add .add-acts .btn{grid-column:auto;min-width:160px}
 @media(max-width:900px){.add label,.add label.span4{grid-column:1/-1}.sel-body{flex-direction:column;align-items:flex-start}.bw-acts{align-items:flex-start}}
+
+.bw-acts{flex-direction:row;align-items:center;gap:8px}
+.bw-acts .bw-btn{min-height:48px;height:48px;padding:0 16px;font-size:14px;min-width:170px;justify-content:center}
+.name-edit{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px}
+.name-edit label{display:flex;flex-direction:column;gap:4px;font:12px var(--mono);color:var(--mut);text-transform:uppercase;letter-spacing:.1em;flex:1;min-width:160px}
+.name-edit input{font:inherit;font-size:18px;text-transform:none;letter-spacing:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0d12;color:var(--txt)}
+.name-edit .btn{min-height:48px;padding:0 20px;font-size:16px}.name-edit .ok{color:var(--cy);font-family:var(--mono)}.name-edit .err{color:#ff6b6b}
