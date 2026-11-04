@@ -1,0 +1,21 @@
+import {useEffect,useState} from 'react';import {sb} from '../lib.js';import {SearchPick,Selected,Confirm,MemberInfo,OpenBtn,label} from './Members.jsx';
+export function LostPanel({onDone,onMsg}){const[sel,setSel]=useState(null);const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
+ async function mark(){setBusy(true);const{error}=await sb.rpc('mark_card_lost',{p_member_id:sel.id});setBusy(false);setAsk(false);
+  if(error)return onMsg({err:1,t:error.message});onMsg({t:`${label(sel)} added to the lost cards list`});onDone();}
+ return <section className="panel"><h2>Lost card — find member</h2>
+  {sel?<Selected h={sel} onClear={()=>setSel(null)}>{sel.lost_card_at?<span className="muted">Already on lost cards list</span>:<button className="btn primary lg" onClick={()=>setAsk(true)}>Mark as lost</button>}</Selected>
+   :<SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members"/>}
+  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Mark card as lost / needs replacement for:</p><MemberInfo h={sel}/></Confirm>}
+ </section>;}
+export function QueuePanel({onMsg}){const[rows,setRows]=useState(null);const[sel,setSel]=useState(null);const[bc,setBc]=useState('');const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
+ const load=async()=>{const{data,error}=await sb.rpc('list_lost_cards');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
+ async function link(){setBusy(true);const b=bc.trim();const{error}=await sb.rpc('link_card',{p_barcode:b,p_member_id:sel.id});setBusy(false);setAsk(false);
+  if(error)return onMsg({err:1,t:error.message});onMsg({t:`New card ${b} linked to ${label(sel)} — removed from lost list`});setSel(null);setBc('');load();}
+ async function unmark(h){const{error}=await sb.rpc('unmark_card_lost',{p_member_id:h.id});if(error)return onMsg({err:1,t:error.message});load();}
+ return <section className="panel"><h2>Lost cards — replacement queue {rows&&<span className="muted">({rows.length})</span>}</h2>
+  {sel?<Selected h={sel} onClear={()=>{setSel(null);setBc('');}}>
+    <form onSubmit={e=>{e.preventDefault();if(bc.trim())setAsk(true);}} className="row"><input className="big-input" autoFocus value={bc} onChange={e=>setBc(e.target.value)} placeholder="Scan new card…" autoComplete="off"/><button className="btn primary lg" disabled={!bc.trim()}>Done</button></form></Selected>
+  :<ul className="hits">{rows===null&&<li className="muted">Loading…</li>}{rows?.length===0&&<li className="muted">No lost cards waiting</li>}
+   {rows?.map(h=><li key={h.id} className="hit-row"><MemberInfo h={h}/><div className="row"><OpenBtn h={h}/><button className="btn primary" onClick={()=>setSel(h)}>Link new card</button><button className="btn ghost" title="Remove from list" onClick={()=>unmark(h)}>✕</button></div></li>)}</ul>}
+  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={link}><p>Link new card <code>{bc.trim()}</code> to:</p><MemberInfo h={sel}/>{sel.card_barcode&&<p className="muted">Old card {sel.card_barcode} will be deactivated.</p>}</Confirm>}
+ </section>;}
