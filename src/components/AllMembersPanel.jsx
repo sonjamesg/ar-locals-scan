@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,OpenBtn,Selected,MarkLost,extCheck,BwChips,ago} from './Members.jsx';
+import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,BwChips,ago} from './Members.jsx';
 const MONTH=30*864e5;const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at)<MONTH;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
@@ -31,7 +31,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
  const busy=run&&!run.done;const ql=q.trim().toLowerCase();
  const isC=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';const shown=(rows||[]).filter(r=>sf==='all'||(sf==='new'?isNew(r):sf==='cancelled'?isC(r):(!isC(r)&&r.bw_status==='ACTIVE'))).filter(r=>!ql||[r.first_name,r.last_name,r.email,r.bw_lcl].join(' ').toLowerCase().includes(ql));
  const unchecked=eligible.filter(r=>!r.bw_checked_at).length,active=(rows||[]).filter(r=>r.bw_status==='ACTIVE'&&!r.cancelled_at).length,cancelled=(rows||[]).filter(r=>r.cancelled_at||r.bw_status==='CANCELLED').length;
- if(sel)return <section className="panel"><h2>All members</h2><Selected h={sel} onClear={()=>setSel(null)} onUpdate={h=>{setSel(h);patch(h.id,h);}}><MarkLost h={sel} onMarked={h=>{setSel(h);patch(h.id,h);}}/></Selected></section>;
+ if(sel)return <section className="panel"><h2>All members</h2><Selected h={sel} onClear={()=>setSel(null)} onUpdate={h=>{setSel(h);patch(h.id,h);}}><MarkLost h={sel} onMarked={h=>{setSel(h);patch(h.id,h);}}/><UnlinkCard h={sel} onUnlinked={h=>{setSel(h);patch(h.id,h);}}/></Selected></section>;
  return <section className="panel"><h2>All members</h2>
   {rows&&<div className="am-stats">
    <div className="am-stat"><b>{rows.length}</b><span>Members</span></div>

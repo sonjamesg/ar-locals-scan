@@ -45,6 +45,12 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
  {extra&&<div className="sel-extra">{extra}</div>}
  <div className="sel-foot"><div className="sel-left">{children}</div><div className="sel-right">{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
   {editable&&<button className={'btn lg '+(dirty?'primary':'ghost')} disabled={st==='Saving…'} onClick={save}>Save</button>}</div></div></div>;}
+export function UnlinkCard({h,onUnlinked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
+ if(!h.id||h.src==='Bookwhen'||!h.card_barcode)return st?<span className="ok">{st}</span>:null;
+ async function go(){setBusy(true);const{error}=await sb.rpc('unlink_card',{p_member_id:h.id});setBusy(false);setAsk(false);
+  if(error)return setSt('Error: '+error.message);setSt('✓ Card '+h.card_barcode+' unlinked — link a new card');onUnlinked&&onUnlinked({...h,card_barcode:null,pending_card:true});}
+ return <><button type="button" className="btn ghost lg" onClick={()=>setAsk(true)}>Unlink card</button>{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
+  {ask&&<Confirm title="Unlink card?" busy={busy} onNo={()=>setAsk(false)} onYes={go}><p>Are you sure you want to unlink card <b>{h.card_barcode}</b> from this member?</p><MemberInfo h={h}/><p className="muted">The card will stop scanning for them and they'll show as card pending, so you can link a new card. The barcode is freed for re-use.</p></Confirm>}</>;}
 export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
  if(!h.id||h.src==='Bookwhen')return null;
  if(h.lost_card_at)return <span className="muted">⚠ Already on lost cards list</span>;

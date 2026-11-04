@@ -1,4 +1,4 @@
-import {useState} from 'react';import {SearchPick,Selected,Confirm,MemberInfo,MarkLost,label} from './Members.jsx';
+import {useState} from 'react';import {SearchPick,Selected,Confirm,MemberInfo,MarkLost,UnlinkCard,label} from './Members.jsx';
 const addYear=d=>{const[y,m,dd]=d.split('-').map(Number);const x=new Date(Date.UTC(y+1,m-1,dd));if(x.getUTCMonth()!==m-1)x.setUTCDate(0);return x.toISOString().slice(0,10);};
 const gb=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 export default function LinkPanel({barcode,onLink,onAdd}){const[sel,setSel]=useState(null);const[add,setAdd]=useState(false);const[ask,setAsk]=useState(null);const[busy,setBusy]=useState(false);
@@ -6,7 +6,7 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[sel,setSel]=useS
  const go=async fn=>{setBusy(true);try{await fn();}finally{setBusy(false);setAsk(null);}};
  const addNew=e=>{e.preventDefault();const f=new FormData(e.target);setAsk({t:'add',d:{first_name:f.get('fn'),last_name:f.get('ln'),email:f.get('em'),issued_on:iss}});};
  return <section className="panel"><h2>Link card <code>{barcode}</code> to a member</h2>
-  {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={setSel}/><button className="btn ghost lg" onClick={()=>setAsk({t:'link'})}>Link card</button></Selected>:null}
+  {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={setSel}/><UnlinkCard h={sel} onUnlinked={setSel}/><button className="btn ghost lg" onClick={()=>setAsk({t:'link'})}>Link card</button></Selected>:null}
   <div hidden={!!sel}><SearchPick onPick={setSel} emptyText="No matches — add them below"/></div>
   {!sel&&(!add?<button className="btn ghost" onClick={()=>setAdd(true)}>+ Not found? Add new member</button>:
   <form className="add" onSubmit={addNew}><div className="add-h"><span>// NEW MEMBER</span><span className="add-card">CARD <code>{barcode}</code></span></div>
