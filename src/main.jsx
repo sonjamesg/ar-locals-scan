@@ -29,5 +29,6 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    <StatusCard res={res}/>
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
    {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
-  </main><footer className="foot">Atlantic Reach Leisure · Locals Card £10 / 12 months</footer></div>;}
+  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span>Scanner <b>● Live</b> · v2.0</span></footer></div>;}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));
 createRoot(document.getElementById('root')).render(<PinGate><App/></PinGate>);

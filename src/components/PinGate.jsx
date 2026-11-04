@@ -13,7 +13,7 @@ export default function PinGate({children}){
  return <div className="pin-screen" role="dialog" aria-modal="true" aria-labelledby="pin-title"><div className="pin-box">
   <img src={import.meta.env.BASE_URL+"ar-logo.png"} alt="Atlantic Reach" className="pin-logo"/>
   <h1 id="pin-title">Reception Desk</h1><p>Enter your staff PIN to continue</p>
-  <div className={`pin-digits ${err?'shake':''}`} onPaste={paste}>{d.map((v,i)=><input key={i} ref={el=>refs.current[i]=el} value={v} onChange={e=>set(i,e.target.value)} onKeyDown={e=>key(i,e)} onFocus={e=>e.target.select()} inputMode="numeric" type="password" maxLength={1} autoComplete="off" aria-label={`PIN digit ${i+1}`} className={`pin-digit ${err?'bad':''}`}/>)}</div>
+  <div className={`pin-digits ${err?'shake':''}`} onPaste={paste}>{d.map((v,i)=><input key={i} ref={el=>refs.current[i]=el} value={v} onChange={e=>set(i,e.target.value)} onKeyDown={e=>key(i,e)} onFocus={e=>e.target.select()} inputMode="numeric" type="password" maxLength={1} autoComplete="off" placeholder="" aria-label={`PIN digit ${i+1}`} className={`pin-digit ${err?'bad':''}`}/>)}</div>
   <div className="pin-err" aria-live="polite">{err?'Incorrect PIN — please try again':'\u00a0'}</div>
   <div className="pin-foot">Atlantic Reach Leisure · Staff only</div>
  </div></div>;}
