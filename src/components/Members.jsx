@@ -36,3 +36,10 @@ export function NameEdit({h,onSaved}){const cl=v=>ph(v)?'':v;const[f,setF]=useSt
   <button className="btn ghost" disabled={!dirty||st==='Saving…'}>Save name</button>{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}</form>;}
 export function Selected({h,onClear,onUpdate,children}){return <div className="selected"><div className="sel-h"><span>// SELECTED MEMBER</span><button className="sel-x" onClick={onClear} title="Clear selection">✕ Clear</button></div>
  <div className="sel-body"><MemberInfo h={h}/><OpenBtn h={h}/></div><NameEdit h={h} onSaved={onUpdate}/><div className="sel-acts">{children}</div></div>;}
+export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
+ if(!h.id||h.src==='Bookwhen')return null;
+ if(h.lost_card_at)return <span className="muted">⚠ Already on lost cards list</span>;
+ async function mark(){setBusy(true);const{error}=await sb.rpc('mark_card_lost',{p_member_id:h.id});setBusy(false);setAsk(false);
+  if(error)return setSt('Error: '+error.message);setSt('✓ Added to lost cards list');onMarked&&onMarked({...h,lost_card_at:new Date().toISOString()});}
+ return <><button type="button" className="btn ghost lg" onClick={()=>setAsk(true)}>Mark as lost</button>{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
+  {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={h}/><p className="muted">They'll be added to the Lost cards list for a replacement.</p></Confirm>}</>;}

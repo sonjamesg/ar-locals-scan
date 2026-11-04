@@ -5,7 +5,7 @@ export function LostPanel({onDone,onMsg}){const[sel,setSel]=useState(null);const
  return <section className="panel"><h2>Search users</h2>
   {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}>{sel.lost_card_at?<span className="muted">Already on lost cards list</span>:<button className="btn primary lg" onClick={()=>setAsk(true)}>Mark as lost</button>}</Selected>
    :<SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members"/>}
-  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Mark card as lost / needs replacement for:</p><MemberInfo h={sel}/></Confirm>}
+  {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={sel}/></Confirm>}
  </section>;}
 export function QueuePanel({onMsg}){const[rows,setRows]=useState(null);const[sel,setSel]=useState(null);const[bc,setBc]=useState('');const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
  const load=async()=>{const{data,error}=await sb.rpc('list_lost_cards');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
