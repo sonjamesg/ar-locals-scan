@@ -9,13 +9,14 @@ export default function LinkPanel({barcode,onLink,onAdd}){const[q,setQ]=useState
  const until=iss?addYear(iss):'';
  const addNew=e=>{e.preventDefault();const f=new FormData(e.target);onAdd({name:f.get('nm'),email:f.get('em'),issued_on:iss});};
  return <section className="panel"><h2>Link card <code>{barcode}</code> to a member</h2>
-  <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Start typing the member’s name…"/>
+  <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search by name or email…"/>
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {!busy&&q.trim().length>=2&&!hits.length&&<li className="muted">No matches — add them below</li>}
    {hits.map((h,i)=><li key={i}><button className="hit" onClick={()=>onLink(h)}>
-    <span className="hit-name">{h.first_name} {h.last_name}</span>
+    <span className="hit-name">{h.last_name==='(email)'?(h.email||h.email_hint||h.first_name):`${h.first_name} ${h.last_name}`}</span>
     <span className="hit-meta">{h.email_hint||h.email||''}{h.membership_ends_at?` · ends ${h.membership_ends_at}`:''}</span>
-    <span className={`tag ${h.src.toLowerCase()}`}>{h.src}</span></button></li>)}</ul>
+    <span className={`tag ${h.src.toLowerCase()}`}>{h.src}</span></button>
+    {h.bookwhen_customer_id&&<a className="btn ghost" href={`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(h.bookwhen_customer_id)}/subscriptions`} target="_blank" rel="noopener noreferrer">Open memberships</a>}</li>)}</ul>
   {!add?<button className="btn ghost" onClick={()=>setAdd(true)}>+ Not found? Add new member</button>:
   <form className="add" onSubmit={addNew}><div className="add-h">// NEW MEMBER · CARD <code>{barcode}</code></div>
    <label>Full name<input name="nm" placeholder="e.g. Jane Smith" required autoFocus defaultValue={q.trim()}/></label>
