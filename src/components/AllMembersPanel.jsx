@@ -2,14 +2,14 @@ import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';imp
 const MONTH=30*864e5;const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at)<MONTH;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
- if(h._err)return <span className="err">{h._err}</span>;if(!h.bookwhen_customer_id)return <span className="muted">No CustomerID</span>;
+ if(h._err)return <span className="err">{h._err}</span>;if(!h.bookwhen_customer_id&&!h.bw_checked_at)return <span className="muted">No CustomerID</span>;
  if(!h.bw_checked_at)return <span className="muted">Not checked</span>;
  return <BwChips h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const ctl=useRef({});
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
  const patch=(id,p)=>setRows(rs=>rs.map(r=>r.id===id?{...r,...p}:r));
- const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id);const n=Math.max(1,Math.min(200,parseInt(size==='custom'?custom:size)||1));
+ const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id||(r.email||'').includes('@'));const n=Math.max(1,Math.min(200,parseInt(size==='custom'?custom:size)||1));
  function pick(){const pool=mode==='unchecked'?eligible.filter(r=>!r.bw_checked_at):eligible.slice(Math.max(0,from-1));return pool.slice(0,n);}
  async function start(){if(!window.__arExt)return onMsg({err:1,t:'Extension not detected — install it on this PC and hard-refresh'});
   const list=pick();if(!list.length)return onMsg({t:'Nothing to check in that range'});
@@ -17,9 +17,9 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   let ok=0,bad=0;setRun({i:0,total:list.length,ok,bad,paused:false});
   let next=0,started=0;
   async function one(h){patch(h.id,{_st:'checking'});setRun(r=>({...r,i:++started}));
-   const res=await extCheck(h.bookwhen_customer_id);
+   const res=await extCheck(h.bookwhen_customer_id||null,h.bookwhen_customer_id?null:(h.email||'').trim().toLowerCase());
    if(res.error){bad++;patch(h.id,{_st:null,_err:res.error});}
-   else{const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id});
+   else{const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id,p_bookwhen_customer_id:res.customer_id||null});
     if(error){bad++;patch(h.id,{_st:null,_err:error.message});}else{ok++;patch(h.id,{_st:null,_err:null,...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status,bw_checked_at:(data&&data[0]?.bw_checked_at)||new Date().toISOString()});}}
    setRun(r=>({...r,ok,bad}));}
   async function worker(w){await sleep(w*400);
@@ -35,7 +35,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
  return <section className="panel"><h2>All members</h2>
   {rows&&<div className="am-stats">
    <div className="am-stat"><b>{rows.length}</b><span>Members</span></div>
-   <div className="am-stat"><b>{eligible.length}</b><span>With CustomerID</span></div>
+   <div className="am-stat"><b>{eligible.length}</b><span>Checkable</span></div>
    <div className="am-stat warn"><b>{unchecked}</b><span>Unchecked</span></div>
    <div className="am-stat ok"><b>{active}</b><span>Active</span></div>
    <div className="am-stat bad"><b>{cancelled}</b><span>Cancelled</span></div></div>}
@@ -51,7 +51,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   {run&&<div className={'batch-prog'+(run.done?' done':'')}><div className="bp-top"><span className="bp-label">{run.done?(run.stopped?'Stopped':'Done'):run.paused?'Paused':'Checking…'}</span>
    <span className="bp-count">{run.i} / {run.total}</span><span className="bp-ok">✓ {run.ok}</span><span className="bp-bad">✕ {run.bad}</span></div>
    <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}
-  <p className="muted batch-note">Uses the Check user extension, {WORKERS} members in parallel ({DELAY/1000}s pause per worker). Members without a CustomerID are skipped. Keep Bookwhen signed in.</p></div>
+  <p className="muted batch-note">Uses the Check user extension, {WORKERS} members in parallel ({DELAY/1000}s pause per worker). Members without a CustomerID are looked up by email (CustomerID saved). Keep Bookwhen signed in.</p></div>
   <div className="am-filter">{[['all','All'],['active','Active'],['new',`New (${(rows||[]).filter(isNew).length})`],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}</div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}

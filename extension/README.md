@@ -19,3 +19,6 @@ Desk → postMessage → `desk-bridge.js` → `background.js` opens a hidden bac
 
 If the extension isn't installed, Check user opens the Memberships page so you can check by eye.
 Open in Bookwhen / Memberships buttons always stay as the manual route.
+
+## 1.1.0
+Check user works without a Bookwhen CustomerID: the extension searches Locals customers by email, picks the matching `/customers/{id}`, checks it, and returns `customer_id` so the desk saves it.

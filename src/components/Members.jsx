@@ -60,19 +60,19 @@ export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[b
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={h}/><p className="muted">They'll be added to the Lost cards list for a replacement.</p></Confirm>}</>;}
 
 if(typeof window!=='undefined'){window.addEventListener('message',e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY')window.__arExt=e.data.version;});window.postMessage({type:'AR_EXT_PING'},location.origin);}
-export function extCheck(customerId){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
+export function extCheck(customerId,email){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
- window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId},location.origin);});}
+ window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId,email},location.origin);});}
 export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);
  if(!h.id||h.src==='Bookwhen')return actions?<div className="md-actions">{actions}</div>:null;
- const v=r||(h.bw_checked_at?h:null);
+ const v=r||(h.bw_checked_at?h:null);const em=(h.email||'').trim().toLowerCase();const can=!!h.bookwhen_customer_id||em.includes('@');
  async function run(){setBusy(true);setErr('');
-  if(!window.__arExt){setBusy(false);window.open(bwUrl(h.bookwhen_customer_id),'_blank','noopener');setErr('Extension not installed — opened Memberships to check manually');return;}
-  const res=await extCheck(h.bookwhen_customer_id);
+  if(!window.__arExt){setBusy(false);if(h.bookwhen_customer_id){window.open(bwUrl(h.bookwhen_customer_id),'_blank','noopener');setErr('Extension not installed — opened Memberships to check manually');}else{window.open(bwSearchUrl(em),'_blank','noopener');setErr('Extension needed to check by email — opened Bookwhen search instead');}return;}
+  const res=await extCheck(h.bookwhen_customer_id||null,h.bookwhen_customer_id?null:em);
   if(res.error){setBusy(false);setErr(res.error);return;}
-  const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id});
+  const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id,p_bookwhen_customer_id:res.customer_id||null});
   setBusy(false);if(error){setErr(error.message);return;}
   const body={...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status};setR(body);onUpdate&&onUpdate({...h,...body});}
  const cls=h.cancelled_at?'bw-cancel':v?(v.bw_status==='ACTIVE'?'bw-ok':'bw-bad'):'';
@@ -80,5 +80,5 @@ export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);con
  return <div className="bw-check">
   <div className="md-chips">{h.cancelled_at&&!v&&<span className="chip chip-status bw-cancel"><i/>Cancelled</span>}{v?<><span className={'chip chip-status '+cls}><i/>{h.cancelled_at?'Cancelled':(v.bw_status||'UNKNOWN')}</span>{v.bw_lcl&&<span className="chip"><em>LCL</em>{v.bw_lcl.replace(/^LCL/,'')}</span>}{v.bw_renews_at&&<span className="chip"><em>Renews</em>{fmt(v.bw_renews_at)}</span>}<span className="md-checked">Checked {ago(v.bw_checked_at)}</span></>:<span className="md-checked">Not checked yet</span>}</div>
   {err&&<div className="err md-err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}</div>}
-  <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy||!h.bookwhen_customer_id} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':'No Bookwhen ID — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>
+  <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy||!can} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':can?'Find in Bookwhen by email, check Locals and save CustomerID':'No Bookwhen ID or email — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>
  </div>;}

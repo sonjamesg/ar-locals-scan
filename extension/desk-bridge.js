@@ -5,8 +5,8 @@ window.addEventListener('message', e => {
   if (e.source !== window || !e.data) return;
   if (e.data.type === 'AR_EXT_PING') return ann();
   if (e.data.type !== 'AR_CHECK') return;
-  const { reqId, customerId } = e.data;
-  chrome.runtime.sendMessage({ type: 'check', customerId }, res => {
+  const { reqId, customerId, email } = e.data;
+  chrome.runtime.sendMessage({ type: 'check', customerId, email }, res => {
     const err = chrome.runtime.lastError;
     window.postMessage({ type: 'AR_CHECK_RESULT', reqId, ...(err ? { error: err.message } : res) }, location.origin);
   });
