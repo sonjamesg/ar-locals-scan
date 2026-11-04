@@ -48,17 +48,25 @@ export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[b
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={h}/><p className="muted">They'll be added to the Lost cards list for a replacement.</p></Confirm>}</>;}
 
 const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
+if(typeof window!=='undefined'){window.addEventListener('message',e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY')window.__arExt=e.data.version;});window.postMessage({type:'AR_EXT_PING'},location.origin);}
+function extCheck(customerId){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
+ const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
+ const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
+ window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId},location.origin);});}
 export function CheckUser({h,onUpdate}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);
  if(!h.id||h.src==='Bookwhen')return null;
  const v=r||(h.bw_checked_at?h:null);
- async function run(){setBusy(true);setErr('');const{data,error}=await sb.functions.invoke('check-bookwhen-member',{body:{member_id:h.id}});
-  let body=data;if(error){try{body=await error.context.json();}catch{body={error:error.message};}}
-  setBusy(false);if(!body||body.error){setErr((body&&body.error)||'Check failed');return;}
-  setR(body);onUpdate&&onUpdate({...h,...body});}
+ async function run(){setBusy(true);setErr('');
+  if(!window.__arExt){setBusy(false);window.open(bwUrl(h.bookwhen_customer_id),'_blank','noopener');setErr('Extension not installed — opened Memberships to check manually');return;}
+  const res=await extCheck(h.bookwhen_customer_id);
+  if(res.error){setBusy(false);setErr(res.error);return;}
+  const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id});
+  setBusy(false);if(error){setErr(error.message);return;}
+  const body={...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status};setR(body);onUpdate&&onUpdate({...h,...body});}
  const cls=v?(v.bw_status==='ACTIVE'?'bw-ok':'bw-bad'):'';
  return <div className="bw-check">
   <button type="button" className="btn primary bw-btn" onClick={run} disabled={busy||!h.bookwhen_customer_id} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':'No Bookwhen ID — use Open in Bookwhen'}>{busy?'Checking…':'Check user'}</button>
   {v&&<span className={'bw-status '+cls}><b>{v.bw_status||'?'}</b>{v.bw_lcl&&<> · {v.bw_lcl}</>}{v.bw_renews_at&&<> · renews {new Date(v.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</>}<span className="muted"> · checked {ago(v.bw_checked_at)}</span></span>}
-  {err&&<span className="err">{err}{/session/i.test(err)&&' — use Memberships ↗ to check manually'}</span>}
+  {err&&<span className="err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}</span>}
  </div>;}
