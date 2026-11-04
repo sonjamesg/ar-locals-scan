@@ -3,7 +3,7 @@ export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURI
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
 export const nameOf=h=>{const n=[h.first_name,h.last_name].filter(x=>!ph(x)).join(' ');return n||null;};
 export const label=h=>nameOf(h)||h.email||'(no name)';
-export const bwTerm=h=>{const e=(h.email||'').trim();if(e.includes('@')){const lp=e.split('@')[0];const m=lp.match(/^[a-z]+/i);return (m&&m[0].length>=3?m[0]:lp).toLowerCase();}const n=nameOf(h);return n?n.split(' ')[0]:'';};
+export const bwTerm=h=>{const e=(h.email||'').trim();if(e.includes('@'))return e.toLowerCase();const n=nameOf(h);return n?n.split(' ')[0]:'';};
 export const bwSearchUrl=t=>`https://atlanticreach.bookwhen.com/customers/list?filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=&filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=2qx0sob92cv9&order=last_seen&reverse=0&search_text=${encodeURIComponent(t)}`;
 export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)return null;return <div className="bw-acts" onClick={e=>e.stopPropagation()}>
  {t&&<a className="btn ghost bw-btn" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen ↗</a>}
