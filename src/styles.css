@@ -249,3 +249,5 @@ body::before{background-image:linear-gradient(#00e5c01c 1px,transparent 1px),lin
 .idle-s{font-size:18px;padding:6px 16px;border-top:1px solid #00e5c030}
 .tab.active,.tabs .active{box-shadow:inset 0 -3px 0 var(--cy),0 0 18px #00e5c030;color:var(--cy)}
 @media(prefers-reduced-motion:no-preference){.reticle{animation:ret 8s linear infinite}@keyframes ret{to{transform:translate(-50%,-50%) rotate(360deg)}}}
+.contact-admin{margin-top:8px;padding:8px 12px;border:1px solid #00e5c066;border-radius:10px;background:#00e5c012;color:var(--cy);font:700 13px var(--mono);letter-spacing:.06em;box-shadow:0 0 14px #00e5c022}
+.contact-admin.inline{display:inline;margin:0;padding:1px 8px;font-size:11px}

@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';imp
 const MONTH=30*864e5;const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at)<MONTH;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
- if(h._err)return <span className="err">{h._err}</span>;if(!h.bookwhen_customer_id&&!h.bw_checked_at)return <span className="muted">No CustomerID</span>;
+ if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;if(!h.bookwhen_customer_id&&!h.bw_checked_at)return <span className="muted">No CustomerID</span>;
  if(!h.bw_checked_at)return <span className="muted">Not checked</span>;
  return <BwChips h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
@@ -18,7 +18,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   let next=0,started=0;
   async function one(h){patch(h.id,{_st:'checking'});setRun(r=>({...r,i:++started}));
    const res=await extCheck(h.bookwhen_customer_id||null,h.bookwhen_customer_id?null:(h.email||'').trim().toLowerCase());
-   if(res.error){bad++;patch(h.id,{_st:null,_err:res.error});}
+   if(res.error||(!res.status&&!res.customer_id&&!h.bookwhen_customer_id)){bad++;patch(h.id,{_st:null,_err:res.error||'Not found in Bookwhen'});}
    else{const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id,p_bookwhen_customer_id:res.customer_id||null});
     if(error){bad++;patch(h.id,{_st:null,_err:error.message});}else{ok++;patch(h.id,{_st:null,_err:null,...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status,bw_checked_at:(data&&data[0]?.bw_checked_at)||new Date().toISOString()});}}
    setRun(r=>({...r,ok,bad}));}
