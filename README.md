@@ -35,3 +35,23 @@ A Grok Bot routine polls james@atlanticreach.co.uk, label **Bookwhen**, for new 
 2. Calls `select ingest_bookwhen_email(gmail_message_id, kind, email, first, last, notes)` (service role only).
    It's idempotent per message id (`bookwhen_email_log`). For a new member it inserts with `pending_card=true`, `bw_status=ACTIVE`. For an existing member it reactivates them. A cancel sets `CANCELLED`.
 New members appear in the **Pending cards** tab until a card is linked.
+
+## Autonomous Bookwhen email sync (no Grok Bot required)
+
+Runs entirely on Supabase:
+- **Cron** (`pg_cron`, migration `0012_bookwhen_cron.sql`) calls Edge Function `bookwhen-gmail-sync` every 10 minutes.
+- The function reads Gmail label **Bookwhen** (james@atlanticreach.co.uk) via the Gmail API, searching `subject:"LOCALS CARD"` from the last 3 days.
+- **Only Locals card mail is processed**: subject must contain `LOCALS CARD` *and* either `Membership started: LOCALS CARD` (→ new member, `pending_card=true`, ACTIVE) or a cancel (→ `CANCELLED`). All other Bookwhen mail is ignored.
+- Each message is recorded in `bookwhen_email_log` via `ingest_bookwhen_email`, so re-runs never duplicate. Existing members (matched by email) are updated, not duplicated.
+
+### One-time setup (James)
+1. Google Cloud Console → create an OAuth client (Desktop/Web), enable the Gmail API.
+2. Get a refresh token for james@atlanticreach.co.uk with scope `https://www.googleapis.com/auth/gmail.readonly` (e.g. via https://developers.google.com/oauthplayground using your own client ID/secret). Set the OAuth consent screen to **In production** (or Internal for Workspace) so the token doesn't expire after 7 days.
+3. Supabase → Project Settings → Edge Functions → Secrets, add:
+   `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN` (optional `GMAIL_LABEL`, default `Bookwhen`).
+
+That's it — it then runs forever on Supabase. Check logs in Supabase → Edge Functions → bookwhen-gmail-sync.
+
+### Alternative: forwarding webhook
+Set secret `SYNC_SECRET`, then any inbound-email service (Cloudflare Email Workers, etc.) can POST `{"message_id","subject"}` with header `x-sync-secret` to
+`https://qpcqovuzmyxinozypxik.supabase.co/functions/v1/bookwhen-gmail-sync`. Same Locals-only filter applies.
