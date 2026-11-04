@@ -8,7 +8,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const ctl=useRef({});
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
  const patch=(id,p)=>setRows(rs=>rs.map(r=>r.id===id?{...r,...p}:r));
- const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id);const n=Math.max(1,parseInt(size==='custom'?custom:size)||1);
+ const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id);const n=Math.max(1,Math.min(200,parseInt(size==='custom'?custom:size)||1));
  function pick(){const pool=mode==='unchecked'?eligible.filter(r=>!r.bw_checked_at):eligible.slice(Math.max(0,from-1));return pool.slice(0,n);}
  async function start(){if(!window.__arExt)return onMsg({err:1,t:'Extension not detected — install it on this PC and hard-refresh'});
   const list=pick();if(!list.length)return onMsg({t:'Nothing to check in that range'});
@@ -39,8 +39,8 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    <div className="am-stat ok"><b>{active}</b><span>Active</span></div>
    <div className="am-stat bad"><b>{cancelled}</b><span>Cancelled</span></div></div>}
   <div className="batch-card"><div className="batch">
-   <label>Batch size<select value={size} onChange={e=>setSize(e.target.value)} disabled={busy}>{['5','10','25','50'].map(v=><option key={v}>{v}</option>)}<option value="custom">Custom…</option></select></label>
-   {size==='custom'&&<label>Count<input type="number" min="1" value={custom} onChange={e=>setCustom(e.target.value)} disabled={busy}/></label>}
+   <label>Batch size<select value={size} onChange={e=>setSize(e.target.value)} disabled={busy}>{['5','10','25','50','100','200'].map(v=><option key={v}>{v}</option>)}<option value="custom">Custom…</option></select></label>
+   {size==='custom'&&<label>Count<input type="number" min="1" max="200" value={custom} onChange={e=>setCustom(e.target.value)} disabled={busy}/></label>}
    <label>Which<select value={mode} onChange={e=>setMode(e.target.value)} disabled={busy}><option value="unchecked">Next unchecked</option><option value="range">Start from #</option></select></label>
    {mode==='range'&&<label>From #<input type="number" min="1" max={eligible.length||1} value={from} onChange={e=>setFrom(Math.max(1,parseInt(e.target.value)||1))} disabled={busy}/></label>}
    {!busy&&<button className="btn primary lg" onClick={start} disabled={!rows}>Check {n}</button>}
