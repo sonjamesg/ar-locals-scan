@@ -25,3 +25,13 @@ Gmail label **Bookwhen** (james@atlanticreach.co.uk) sync is scaffolded but **no
 - `members.pending_card` — new member awaiting a physical card (shown on **Pending cards** tab; cleared automatically when a card is linked, or via `mark_card_issued`).
 - `members.cancelled_at` + `mark_member_cancelled(p_member_id)` — sets bw_status CANCELLED.
 - `bookwhen_email_log` — dedupe log keyed by Gmail message id.
+
+## Bookwhen email sync (Gmail → DB)
+A Grok Bot routine polls james@atlanticreach.co.uk, label **Bookwhen**, for new messages, then:
+1. Parses subject/body with `scripts/parse-bookwhen-email.mjs` (`parseBookwhen(subject, body)`).
+   - NEW: subject contains `Membership started: LOCALS CARD` → email after the final dash (fallback `Booking contact:`), name from `Registration - <name> - Membership`.
+   - CANCELLED: stub (subject has `cancel` + LOCALS CARD). Check it against a real cancel email before relying on it.
+   - Anything else → skipped.
+2. Calls `select ingest_bookwhen_email(gmail_message_id, kind, email, first, last, notes)` (service role only).
+   It's idempotent per message id (`bookwhen_email_log`). For a new member it inserts with `pending_card=true`, `bw_status=ACTIVE`. For an existing member it reactivates them. A cancel sets `CANCELLED`.
+New members appear in the **Pending cards** tab until a card is linked.
