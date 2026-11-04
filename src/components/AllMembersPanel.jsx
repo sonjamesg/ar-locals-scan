@@ -27,8 +27,13 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
  const shown=(rows||[]).filter(r=>!ql||[r.first_name,r.last_name,r.email,r.bw_lcl].join(' ').toLowerCase().includes(ql));
  const unchecked=eligible.filter(r=>!r.bw_checked_at).length,active=(rows||[]).filter(r=>r.bw_status==='ACTIVE').length;
  if(sel)return <section className="panel"><h2>All members</h2><Selected h={sel} onClear={()=>setSel(null)} onUpdate={h=>{setSel(h);patch(h.id,h);}}><MarkLost h={sel} onMarked={h=>{setSel(h);patch(h.id,h);}}/></Selected></section>;
- return <section className="panel"><h2>All members {rows&&<span className="muted">({rows.length} · {eligible.length} with CustomerID · {unchecked} unchecked · {active} ACTIVE)</span>}</h2>
-  <div className="batch">
+ return <section className="panel"><h2>All members</h2>
+  {rows&&<div className="am-stats">
+   <div className="am-stat"><b>{rows.length}</b><span>Members</span></div>
+   <div className="am-stat"><b>{eligible.length}</b><span>With CustomerID</span></div>
+   <div className="am-stat warn"><b>{unchecked}</b><span>Unchecked</span></div>
+   <div className="am-stat ok"><b>{active}</b><span>Active</span></div></div>}
+  <div className="batch-card"><div className="batch">
    <label>Batch size<select value={size} onChange={e=>setSize(e.target.value)} disabled={busy}>{['5','10','25','50'].map(v=><option key={v}>{v}</option>)}<option value="custom">Custom…</option></select></label>
    {size==='custom'&&<label>Count<input type="number" min="1" value={custom} onChange={e=>setCustom(e.target.value)} disabled={busy}/></label>}
    <label>Which<select value={mode} onChange={e=>setMode(e.target.value)} disabled={busy}><option value="unchecked">Next unchecked</option><option value="range">Start from #</option></select></label>
@@ -37,9 +42,10 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    {busy&&<><button className="btn ghost lg" onClick={()=>{ctl.current.pause=!ctl.current.pause;setRun(r=>({...r,paused:ctl.current.pause}));}}>{run.paused?'Resume':'Pause'}</button>
     <button className="btn ghost lg" onClick={()=>{ctl.current.stop=true;}}>Stop</button></>}
   </div>
-  {run&&<div className="batch-prog"><div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div>
-   <span>{run.done?(run.stopped?'Stopped at':'Done'):run.paused?'Paused':'Checking'} {run.i}/{run.total} · ✓ {run.ok} · ✕ {run.bad}</span></div>}
-  <p className="muted">Uses the Check user extension one member at a time, {DELAY/1000}s apart. Members without a CustomerID are skipped. Keep Bookwhen signed in.</p>
+  {run&&<div className={'batch-prog'+(run.done?' done':'')}><div className="bp-top"><span className="bp-label">{run.done?(run.stopped?'Stopped':'Done'):run.paused?'Paused':'Checking…'}</span>
+   <span className="bp-count">{run.i} / {run.total}</span><span className="bp-ok">✓ {run.ok}</span><span className="bp-bad">✕ {run.bad}</span></div>
+   <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}
+  <p className="muted batch-note">Uses the Check user extension one member at a time, {DELAY/1000}s apart. Members without a CustomerID are skipped. Keep Bookwhen signed in.</p></div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
    {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit" onClick={()=>setSel(h)}><MemberInfo h={h}/><Status h={h}/></button><OpenBtn h={h}/></li>)}
