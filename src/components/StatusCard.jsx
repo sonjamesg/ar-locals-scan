@@ -1,13 +1,12 @@
 import {left,fmt} from '../lib.js';
 import {formatVisitWhen} from '../lib/visits.js';
-const C={valid:'STATUS 200 · ACCESS OK',expired:'STATUS 410 · EXPIRED',unknown:'STATUS 404 · NOT LINKED',lost:'STATUS 423 · CARD LOST'};
-const L={valid:['✓','VALID'],expired:['!','EXPIRED'],unknown:['?','UNKNOWN CARD'],lost:['⚠','CARD LOST']};
+const L={valid:['✓','Valid'],expired:['!','Expired'],unknown:['?','Card not linked'],lost:['⚠','Card reported lost']};
 export default function StatusCard({res}){
- if(!res)return <section className="status idle" data-code="SYS · ONLINE"><i className="corner tl"/><i className="corner tr"/><i className="corner bl"/><i className="corner br"/><i className="reticle"/><div className="idle-icon">▮▯▮▮▯▮</div><div className="idle-t">AWAITING SCAN</div><div className="idle-s">Scan a locals card with the barcode scanner</div></section>;
+ if(!res)return <section className="status idle" aria-live="polite"><div className="idle-t">Ready to scan</div><div className="idle-s">Point the barcode scanner at a Locals card. Membership details will appear here.</div></section>;
  const s=res.status||'unknown';const[ic,lab]=L[s]||L.unknown;
  const v=res.visit;
- return <section className={`status ${s==='lost'?'expired':s}`} data-code={C[s]||C.unknown} key={(res.barcode||'')+s+(v?.visit_id||v?.reason||'')}>
-  <div className="st-icon">{ic}</div><div className="st-body">
+ return <section className={`status ${s==='lost'?'expired':s}`} aria-live="polite">
+  <div className="st-icon" aria-hidden="true">{ic}</div><div className="st-body">
   <div className="st-label">{lab}</div>
   {s!=='unknown'?<><div className="st-name">{res.first_name} {res.last_name}</div>
    <div className="st-meta">{res.membership_ends_at?<>{left(res.membership_ends_at)} <span>· {s==='expired'?'ended':'until'} {fmt(res.membership_ends_at)}</span></>:'No expiry set'}</div>
@@ -16,5 +15,5 @@ export default function StatusCard({res}){
    {s==='valid'&&v?.suppressed&&<div className="st-hint">Already checked in · next visit after {formatVisitWhen(v.next_eligible_at)}</div>}
    {s==='valid'&&v?.error&&<div className="st-hint err">Check-in not saved — {v.error}</div>}
    </>
-  :<div className="st-meta">Card <b>{res.barcode}</b> isn’t linked yet{res.err?<span> · {res.err}</span>:null}</div>}
+  :<div className="st-meta">Card <b>{res.barcode}</b> is not linked yet{res.err?<span> · {res.err}</span>:null}</div>}
   </div></section>;}

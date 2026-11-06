@@ -35,7 +35,7 @@ export default function AddMemberPanel({onMsg}){
     <label>Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'—'}</output></label>
     <div className="add-acts"><button type="button" className="btn ghost" onClick={reset}>Clear</button><button className="btn primary" disabled={!cardOk||!f.first_name.trim()||!f.last_name.trim()}>Done</button></div></form>}
   </>}
-  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(null)} onYes={save}>
+  {ask&&<Confirm title="Confirm details?" busy={busy} onNo={()=>setAsk(null)} onYes={save}>
    {ask.member?<><p>Link card <code>{f.barcode.trim()}</code> to:</p><MemberInfo h={ask.member}/></>
    :<><p><b>{f.first_name} {f.last_name}</b><br/>{email}</p><p>Card <code>{f.barcode.trim()}</code> · issued {f.issued_on} · expires {plus12(f.issued_on)}</p></>}</Confirm>}
  </section>;}

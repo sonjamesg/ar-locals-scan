@@ -1,9 +1,10 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
 import './styles.css';import {sb} from './lib.js';
-import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
+import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
 import FeedbackPanel from './components/FeedbackPanel.jsx';
 import VisitsPanel from './components/VisitsPanel.jsx';
-function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');const[fb,setFb]=useState(null); // null | 'compose' | 'list'
+import {safeDeskView} from './lib/memberNotFound.js';
+function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const go=v=>setView(safeDeskView(v,ALLOWED));const[fb,setFb]=useState(null); // null | 'compose' | 'list'
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
@@ -36,34 +37,30 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  async function link(h){const p=h.src==='Local'?{p_member_id:h.id}:{p_first_name:h.first_name,p_last_name:h.last_name,p_email:h.email,p_bookwhen_customer_id:h.bookwhen_customer_id,p_ends_at:h.membership_ends_at};
   const{error}=await sb.rpc('link_card',{p_barcode:res.barcode,...p});if(error)return setMsg({err:1,t:error.message});
   setMsg({t:`Card linked to ${label(h)}`});const{data}=await sb.rpc('lookup_card',{p_barcode:res.barcode});setRes({...data[0],barcode:res.barcode});focus();}
- async function addNew({first_name,last_name,email,issued_on}){const b=res.barcode;const fn=first_name.trim(),ln=last_name.trim();
-  let r=await sb.rpc('add_member_with_card',{p_first_name:fn,p_last_name:ln,p_barcode:b,p_issued_on:issued_on,p_email:email||null});
-  if(r.error&&/function|schema cache|PGRST202|p_first_name|p_full_name/i.test((r.error.message||'')+(r.error.code||'')+(r.error.details||''))){
-   // fallback: old RPC still expects p_full_name, or link_card
-   r=await sb.rpc('add_member_with_card',{p_full_name:`${fn} ${ln}`,p_barcode:b,p_issued_on:issued_on,p_email:email||null});
-   if(r.error&&/function|schema cache|PGRST202/i.test((r.error.message||'')+(r.error.code||''))){
-    const[y,m,d]=issued_on.split('-').map(Number);const e=new Date(Date.UTC(y+1,m-1,d));if(e.getUTCMonth()!==m-1)e.setUTCDate(0);
-    r=await sb.rpc('link_card',{p_barcode:b,p_first_name:fn,p_last_name:ln||'-',p_email:email||null,p_ends_at:e.toISOString().slice(0,10)});
-    if(!r.error)r=await sb.rpc('lookup_card',{p_barcode:b});}}
-  if(r.error)return setMsg({err:1,t:r.error.message});setMsg({t:`Added ${fn} ${ln} — card ${b} linked`});setRes({...(r.data?.[0]||{status:'unknown'}),barcode:b});focus();}
  const s=res?.status;
  return <div className="app"><Header onOpenFeedback={v=>setFb(v||'compose')} onLock={()=>setFb(null)}/>
   <main className="main">
-   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{setView('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{setView('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{setView('visits');setMsg(null);}}>Visits</button></nav>
-   {view==='scan'&&<><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
-    <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Waiting for barcode…" autoComplete="off" autoFocus className="scan-input"/>
+   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{go('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{go('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{go('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{go('queue');setMsg(null);}}>Lost cards</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{go('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{go('visits');setMsg(null);}}>Visits</button></nav>
+   {view==='scan'&&<div className="scan-layout"><div className="scan-card"><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
+    <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Barcode appears here when scanned…" autoComplete="off" autoFocus className="scan-input"/>
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
    <StatusCard res={res}/>
-      {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link} onAdd={addNew}/>}
-  </>}
+      {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
+  </div>
+  <aside className="help-panel panel"><h3>Quick help</h3><p className="muted">Simple steps for reception.</p>
+   <ul className="help-list">
+    <li><b>Scan</b>Check someone in at the desk.</li>
+    <li><b>Search Users</b>Find a member by name or email.</li>
+    <li><b>Pending / Lost</b>Issue or replace a card.</li>
+    <li><b>Need help?</b>Use ? beside Lock, or email james@atlanticreach.co.uk</li>
+   </ul></aside></div>}
    {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')}/>}
-   {view==='add'&&<AddMemberPanel onMsg={setMsg}/>}
-   {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
+      {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
    {view==='visits'&&<VisitsPanel onMsg={setMsg}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
-  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>setFb('list')}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
+  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>setFb('list')}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
   <FeedbackPanel open={fb} onClose={()=>setFb(null)}/>
 </div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));

@@ -1,10 +1,11 @@
 import {useEffect,useState} from 'react';import {sb} from '../lib.js';import {SearchPick,Selected,Confirm,MemberInfo,OpenBtn,MarkLost,UnlinkCard,label,BwChips} from './Members.jsx';
+import {MEMBER_NOT_FOUND_SHORT} from '../lib/memberNotFound.js';
 export function LostPanel({onDone,onMsg}){const[sel,setSel]=useState(null);const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
  async function mark(){setBusy(true);const{error}=await sb.rpc('mark_card_lost',{p_member_id:sel.id});setBusy(false);setAsk(false);
   if(error)return onMsg({err:1,t:error.message});onMsg({t:`${label(sel)} added to the lost cards list`});onDone();}
  return <section className="panel"><h2>Search users</h2>
   {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={h=>{setSel(h);onMsg({t:`${label(h)} added to the lost cards list`});}}/><UnlinkCard h={sel} onUnlinked={h=>{setSel(h);onMsg({t:`Card unlinked from ${label(h)} — now pending a new card`});}}/></Selected>:null}
-  <div hidden={!!sel}><SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members"/></div>
+  <div hidden={!!sel}><SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members — try the original signup email or name"/><p className="muted not-found-guide">{MEMBER_NOT_FOUND_SHORT}</p></div>
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={sel}/></Confirm>}
  </section>;}
 export function QueuePanel({onMsg}){const[rows,setRows]=useState(null);const[sel,setSel]=useState(null);const[bc,setBc]=useState('');const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
@@ -17,7 +18,7 @@ export function QueuePanel({onMsg}){const[rows,setRows]=useState(null);const[sel
     <form onSubmit={e=>{e.preventDefault();if(bc.trim())setAsk(true);}} className="row"><input className="big-input" autoFocus value={bc} onChange={e=>setBc(e.target.value)} placeholder="Scan new card…" autoComplete="off"/><button className="btn primary lg" disabled={!bc.trim()}>Done</button></form></Selected>
   :<ul className="hits">{rows===null&&<li className="muted">Loading…</li>}{rows?.length===0&&<li className="muted">No lost cards waiting</li>}
    {rows?.map(h=><li key={h.id} className="hit-row"><MemberInfo h={h}/><div className="row"><OpenBtn h={h}/><button className="btn primary" onClick={()=>setSel(h)}>Link new card</button><button className="btn ghost" title="Remove from list" onClick={()=>unmark(h)}>✕</button></div></li>)}</ul>}
-  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={link}><p>Link new card <code>{bc.trim()}</code> to:</p><MemberInfo h={sel}/>{sel.card_barcode&&<p className="muted">Old card {sel.card_barcode} will be deactivated.</p>}</Confirm>}
+  {ask&&<Confirm title="Confirm details?" busy={busy} onNo={()=>setAsk(false)} onYes={link}><p>Link new card <code>{bc.trim()}</code> to:</p><MemberInfo h={sel}/>{sel.card_barcode&&<p className="muted">Old card {sel.card_barcode} will be deactivated.</p>}</Confirm>}
  </section>;}
 export function PendingPanel({onMsg}){const[rows,setRows]=useState(null);const[sel,setSel]=useState(null);const[bc,setBc]=useState('');const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);
  const load=async()=>{const{data,error}=await sb.rpc('list_pending_cards');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
@@ -29,5 +30,5 @@ export function PendingPanel({onMsg}){const[rows,setRows]=useState(null);const[s
     <form onSubmit={e=>{e.preventDefault();if(bc.trim())setAsk(true);}} className="row"><input className="big-input" autoFocus value={bc} onChange={e=>setBc(e.target.value)} placeholder="Scan new card…" autoComplete="off"/><button className="btn primary lg" disabled={!bc.trim()}>Done</button></form></Selected>
   :<ul className="hits">{rows===null&&<li className="muted">Loading…</li>}{rows?.length===0&&<li className="muted">No new members waiting for a card. New Bookwhen sign-ups will appear here once email sync is live.</li>}
    {rows?.map(h=><li key={h.id} className="hit-row"><MemberInfo h={h}/><BwChips h={h}/><div className="row"><OpenBtn h={h}/><button className="btn primary" onClick={()=>setSel(h)}>Link new card</button><button className="btn ghost" title="Remove from list" onClick={()=>clear(h)}>✕</button></div></li>)}</ul>}
-  {ask&&<Confirm title="Are you sure the details are correct?" busy={busy} onNo={()=>setAsk(false)} onYes={link}><p>Link card <code>{bc.trim()}</code> to:</p><MemberInfo h={sel}/></Confirm>}
+  {ask&&<Confirm title="Confirm details?" busy={busy} onNo={()=>setAsk(false)} onYes={link}><p>Link card <code>{bc.trim()}</code> to:</p><MemberInfo h={sel}/></Confirm>}
  </section>;}
