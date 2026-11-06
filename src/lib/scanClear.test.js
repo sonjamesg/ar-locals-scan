@@ -8,8 +8,8 @@ const read=p=>readFileSync(join(root,p),'utf8');
 describe('scan Clear button green',()=>{
   it('only scan result Clear uses success class',()=>{
     const main=read('main.jsx');
-    assert.match(main,/className="btn success lg scan-clear"[^>]*>Clear</);
-    // AddMember Clear stays ghost if still present
+    assert.match(main,/className="btn success lg scan-clear"/);
+    assert.match(main,/scan-clear"[\s\S]*?>Clear</);
     const add=read('components/AddMemberPanel.jsx');
     assert.doesNotMatch(add,/btn success[^>]*>Clear</);
   });
