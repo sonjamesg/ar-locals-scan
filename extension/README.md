@@ -22,3 +22,10 @@ Open in Bookwhen / Memberships buttons always stay as the manual route.
 
 ## 1.1.0
 Check user works without a Bookwhen CustomerID: the extension searches Locals customers by email, picks the matching `/customers/{id}`, checks it, and returns `customer_id` so the desk saves it.
+
+## 1.2.0 — Re-sync attendees (manual)
+Desk **Re-sync attendees** opens each allowlisted `/events/{id}/attendances` register in a
+hidden tab (Bookwhen already signed in), reads the rendered table (names + booking ids),
+and returns a session-local snapshot. No customer id/email on the register → suggestions
+are name-only and must be confirmed in Search Users. Never auto-links. Never writes
+Bookwhen attendance. Never runs on page load — only the explicit button.

@@ -10,6 +10,18 @@ export function isValidEventId(id){
   return typeof id==='string' && /^ev-[a-z0-9]+-\d{14}$/i.test(id.trim());
 }
 
+/** Locals card Registration desk event — not an activity class. Exact title only. */
+export function isRegistrationSession(session){
+  const title=String(session?.title??session??'').replace(/\s+/g,' ').trim();
+  return title.toLowerCase()==='registration';
+}
+
+/** Drop Registration from live schedule lists (display + sync targets). */
+export function filterActivitySessions(list){
+  return (list||[]).filter(s=>!isRegistrationSession(s));
+}
+
+
 export function classifySession(session, now=new Date()){
   const s=Date.parse(session?.start_at||'');
   const e=Date.parse(session?.end_at||'');

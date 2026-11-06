@@ -7,6 +7,7 @@ import VisitsPanel from './components/VisitsPanel.jsx';
 import SessionsPanel from './components/SessionsPanel.jsx';
 import {safeDeskView} from './lib/memberNotFound.js';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits','feedback'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const[prevView,setPrevView]=useState('scan');const viewHold=useRef('scan');const go=v=>{const next=safeDeskView(v,ALLOWED);if(viewHold.current!=='feedback'&&next==='feedback') setPrevView(viewHold.current);viewHold.current=next;setView(next);};const[fb,setFb]=useState(null); // null | 'compose'
+ const[searchPrefill,setSearchPrefill]=useState('');
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
@@ -48,7 +49,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  const s=res?.status;
  return <div className="app"><Header onOpenFeedback={v=>setFb(v||'compose')} onLock={()=>setFb(null)}/>
   <main className="main">
-   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{go('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{go('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{go('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{go('queue');setMsg(null);}}>Lost cards</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{go('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{go('visits');setMsg(null);}}>Visits</button></nav>
+   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{go('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setSearchPrefill('');go('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{go('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{go('queue');setMsg(null);}}>Lost cards</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{go('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{go('visits');setMsg(null);}}>Visits</button></nav>
    {view==='scan'&&<div className="scan-layout"><div className="scan-card"><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Barcode appears here when scanned…" autoComplete="off" autoFocus className="scan-input"/>
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn success lg scan-clear" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
@@ -56,7 +57,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
       {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
   </div>
   <div className="scan-side">
-   <SessionsPanel/>
+   <SessionsPanel onSearchName={q=>{setSearchPrefill(q||'');setMsg(null);go('lost');}}/>
    <aside className="help-panel panel"><h3>Quick help</h3><p className="muted">Simple steps for reception.</p>
    <ul className="help-list">
     <li><b>Scan</b>Check someone in at the desk.</li>
@@ -65,7 +66,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
     <li><b>Need help?</b>Use Feedback beside Lock, or email james@atlanticreach.co.uk</li>
    </ul></aside>
   </div></div>}
-   {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')}/>}
+   {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')} searchPrefill={searchPrefill}/>}
       {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}

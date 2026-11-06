@@ -29,7 +29,7 @@ export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const
   const loc=(l.data||[]).map(m=>({...m,src:'Local'}));const ids=new Set(loc.map(m=>m.bookwhen_customer_id).filter(Boolean));
   setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,email:x.email||x.email_hint,src:'Bookwhen'}))]);setBusy(false);},250);return()=>clearTimeout(t);},[q,withBookwhen]);
  return{hits,busy,err};}
-export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',emptyGuide=null,label='Find existing member',placeholder='Search by name or signup email'}){const[q,setQ]=useState('');const{hits,busy,err}=useSearch(q,withBookwhen);
+export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',emptyGuide=null,label='Find existing member',placeholder='Search by name or signup email',initialQuery=''}){const[q,setQ]=useState(initialQuery||'');useEffect(()=>{if(initialQuery!=null&&initialQuery!=='')setQ(initialQuery);},[initialQuery]);const{hits,busy,err}=useSearch(q,withBookwhen);
  const empty=!busy&&!err&&q.trim().length>=2&&!hits.length;
  return <div className="search-pick">
   {label&&<label className="search-label" htmlFor="member-search">{label}</label>}
@@ -80,6 +80,10 @@ export function extCheck(customerId,email){return new Promise(ok=>{const reqId=M
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId,email},location.origin);});}
+export function extAttendeeSync(events){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
+ const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — open a register manually or retry Re-sync'});},180000);
+ const f=e=>{if(e.source===window&&e.data?.type==='AR_ATTENDEE_SYNC_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
+ window.addEventListener('message',f);window.postMessage({type:'AR_ATTENDEE_SYNC',reqId,events},location.origin);});}
 export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);
  if(!h.id||h.src==='Bookwhen')return actions?<div className="md-actions">{actions}</div>:null;

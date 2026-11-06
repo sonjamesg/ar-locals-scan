@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   classifySession,partitionSessions,reconcileSessions,capacityLabel,
   sessionOpenUrl,sessionLinkLabel,adminAttendanceUrl,publicEventUrl,isValidEventId,
+  isRegistrationSession,filterActivitySessions,
   sessionFreshness,visibleUpcoming,PUBLIC_SCHEDULE_URL
 } from './sessions.js';
 
@@ -107,5 +108,27 @@ describe('sessions compact upcoming',()=>{
     const out=visibleUpcoming([{id:'a'}],{limit:3,expanded:false});
     assert.equal(out.truncated,false);
     assert.equal(out.hidden,0);
+  });
+});
+
+describe('Registration session hide',()=>{
+  it('exact title Registration (any case/spacing) is hidden',()=>{
+    assert.equal(isRegistrationSession({title:'Registration'}),true);
+    assert.equal(isRegistrationSession({title:' registration '}),true);
+    assert.equal(isRegistrationSession({title:'REGISTRATION'}),true);
+  });
+  it('does not hide activities that merely contain the word',()=>{
+    assert.equal(isRegistrationSession({title:'Pre-registration swim'}),false);
+    assert.equal(isRegistrationSession({title:'Registration open water'}),false);
+    assert.equal(isRegistrationSession({title:'Indoor Registration Class'}),false);
+    assert.equal(isRegistrationSession({title:'Swim'}),false);
+  });
+  it('filterActivitySessions drops only exact Registration',()=>{
+    const out=filterActivitySessions([
+      {id:'ev-aaa-20261106120000',title:'Registration'},
+      {id:'ev-bbb-20261106130000',title:'Indoor swim'},
+      {id:'ev-ccc-20261106140000',title:'Course registration day'},
+    ]);
+    assert.deepEqual(out.map(s=>s.title),['Indoor swim','Course registration day']);
   });
 });

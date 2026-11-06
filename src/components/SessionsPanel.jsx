@@ -1,9 +1,13 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {sb} from '../lib.js';
 import {
-  capacityLabel,formatAsOf,formatSessionRange,partitionSessions,reconcileSessions,
+  capacityLabel,filterActivitySessions,formatAsOf,formatSessionRange,partitionSessions,reconcileSessions,
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
+import {
+  syncEventAllowlist,mergeSnapshots,flattenAttendees,searchQueryFromAttendeeName,snapshotSummary
+} from '../lib/attendeeSync.js';
+import {extAttendeeSync} from './Members.jsx';
 import {IconClock,IconExternalLink} from './Icons.jsx';
 
 const POLL_MS=45_000;
@@ -28,16 +32,23 @@ function SessionRow({s}){
   </li>;
 }
 
-export default function SessionsPanel(){
+export default function SessionsPanel({onSearchName}){
   const[loading,setLoading]=useState(true);
   const[err,setErr]=useState('');
-  const[errKind,setErrKind]=useState(''); // missing_token | upstream | network | ''
-  const[rows,setRows]=useState([]); // reconciled live list
+  const[errKind,setErrKind]=useState('');
+  const[rows,setRows]=useState([]);
   const[asOf,setAsOf]=useState(null);
   const[scheduleUrl,setScheduleUrl]=useState(PUBLIC_SCHEDULE_URL);
   const[nowTick,setNowTick]=useState(()=>new Date());
   const[expanded,setExpanded]=useState(false);
   const bust=useRef(0);
+
+  // Attendee re-sync — session-local only; NEVER on mount/poll
+  const[snapshots,setSnapshots]=useState([]);
+  const[syncBusy,setSyncBusy]=useState(false);
+  const[syncErr,setSyncErr]=useState('');
+  const[syncProg,setSyncProg]=useState(null); // {i,total}
+  const syncGen=useRef(0);
 
   const load=useCallback(async({manual=false}={})=>{
     setLoading(true);
@@ -48,23 +59,20 @@ export default function SessionsPanel(){
       if(error && !data){
         setErr(error.message||'Could not load sessions');
         setErrKind('network');
-        // Keep previous rows but mark error — do not pretend empty schedule
         setLoading(false);
         return;
       }
       const body=data&&typeof data==='object'?data:{};
       if(body.error && !(body.current||body.upcoming)?.length && body.error!=='ok'){
-        // missing_token / upstream with empty lists
         setErr(body.message||body.error);
         setErrKind(body.error||'upstream');
         if(body.as_of) setAsOf(body.as_of);
         if(body.schedule_url) setScheduleUrl(body.schedule_url);
-        // On hard config error, clear rows so we don't show stale events as live
         if(body.error==='missing_token') setRows([]);
         setLoading(false);
         return;
       }
-      const merged=[...(body.current||[]),...(body.upcoming||[])];
+      const merged=filterActivitySessions([...(body.current||[]),...(body.upcoming||[])]);
       setRows(prev=>reconcileSessions(prev, merged));
       setAsOf(body.as_of||new Date().toISOString());
       if(body.schedule_url) setScheduleUrl(body.schedule_url);
@@ -86,6 +94,42 @@ export default function SessionsPanel(){
   const fresh=sessionFreshness(asOf, nowTick);
   const empty=!loading && !err && current.length===0 && upcoming.length===0;
   const showingStale=!!err && rows.length>0;
+
+  const allowlist=syncEventAllowlist(current, preview.shown);
+
+  async function reSyncAttendees(){
+    setSyncErr('');
+    if(!window.__arExt){
+      setSyncErr('Extension not installed or outdated — load unpacked extension folder (v1.2.0+), keep Bookwhen signed in, then hard-refresh this desk.');
+      return;
+    }
+    if(!allowlist.length){
+      setSyncErr('No activity sessions on now or coming up to sync.');
+      return;
+    }
+    const gen=++syncGen.current;
+    setSyncBusy(true);
+    setSyncProg({i:0,total:allowlist.length});
+    // One batch call — extension walks sequentially; progress is coarse
+    const res=await extAttendeeSync(allowlist.map(({id,title,start_at,end_at})=>({id,title,start_at,end_at})));
+    if(gen!==syncGen.current) return; // superseded
+    setSyncBusy(false);
+    setSyncProg(null);
+    if(res.error){ setSyncErr(res.error); return; }
+    const snaps=Array.isArray(res.snapshots)?res.snapshots:[];
+    // Replace entire set for this button press (per-event replace inside)
+    let next=[];
+    for(const s of snaps) next=mergeSnapshots(next,s);
+    setSnapshots(next);
+    const sum=snapshotSummary(next);
+    if(sum.failed && !sum.ok) setSyncErr('Could not read registers — check Bookwhen sign-in and try again.');
+    else if(sum.failed) setSyncErr(`Synced ${sum.ok} session(s); ${sum.failed} failed.`);
+    else setSyncErr('');
+  }
+
+  const people=flattenAttendees(snapshots);
+  const sum=snapshotSummary(snapshots);
+  const lastCap=snapshots.reduce((m,s)=>Math.max(m, Date.parse(s.captured_at||0)||0),0);
 
   return <section className="panel sess-panel" aria-live="polite">
     <div className="sess-head">
@@ -129,6 +173,42 @@ export default function SessionsPanel(){
           Show fewer
         </button>
       )}
+
+      <div className="sess-att">
+        <div className="sess-att-head">
+          <div>
+            <div className="sess-label" style={{marginTop:12}}>Attendees (manual)</div>
+            <p className="muted sess-att-note">Press Re-sync to read open registers for sessions shown above. Names only — not verified Locals matches. Does not run on refresh.</p>
+          </div>
+          <button type="button" className="btn primary sm" onClick={reSyncAttendees} disabled={syncBusy||!allowlist.length}
+            title="Opens each session register in Bookwhen via the extension (signed-in browser)">
+            {syncBusy?`Re-syncing${syncProg?` ${syncProg.i||''}/${syncProg.total}`:''}…`:'Re-sync attendees'}
+          </button>
+        </div>
+        {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
+        {!!snapshots.length&&<div className="muted sess-att-asof">
+          Snapshot {lastCap?formatAsOf(new Date(lastCap).toISOString()):'—'}
+          {' · '}{sum.people} name{sum.people===1?'':'s'} from {sum.ok} session{sum.ok===1?'':'s'}
+          {sum.failed?` · ${sum.failed} failed`:''}
+          {sum.partial?` · ${sum.partial} incomplete`:''}
+          {' · '}not live
+        </div>}
+        {!snapshots.length&&!syncBusy&&<div className="muted sess-empty sess-att-empty">No attendee snapshot yet — press Re-sync attendees when ready.</div>}
+        {people.length>0&&<ul className="sess-att-list">
+          {people.map((a,i)=><li key={a.event_id+':'+(a.booking_id||'')+':'+a.name+':'+i} className="sess-att-item">
+            <div className="sess-att-main">
+              <div className="sess-att-name">{a.name}</div>
+              <div className="sess-att-meta muted">{a.event_title}{a.event_start_at?` · ${formatSessionRange(a.event_start_at,a.event_end_at||a.event_start_at)}`:''}{a.child?' · child':''}{a.attended&&a.attended!=='unknown'?` · attended ${a.attended}`:''}{a.incomplete||a.snapshot_status==='partial'?' · incomplete snapshot':''}</div>
+              <div className="sess-att-hint">Possible member — confirm identity / signup email</div>
+            </div>
+            <button type="button" className="btn ghost sm" disabled={!searchQueryFromAttendeeName(a.name)}
+              onClick={()=>onSearchName&&onSearchName(searchQueryFromAttendeeName(a.name))}
+              title="Opens Search Users with this name — confirm before linking a card">
+              Search Users
+            </button>
+          </li>)}
+        </ul>}
+      </div>
     </div>
 
     <div className="sess-foot">
