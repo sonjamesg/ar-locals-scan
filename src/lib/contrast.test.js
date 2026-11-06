@@ -19,3 +19,6 @@ describe('status colour contrast',()=>{
   it('ok green on ok bg meets large-text AA',()=>assert.ok(ratio('#17663a','#e6f5ec')>=3));
   it('bad red on bad bg meets large-text AA',()=>assert.ok(ratio('#a11b14','#fceceb')>=3));
 });
+describe('scan Clear button',()=>{
+  it('white on success green meets AA',()=>assert.ok(ratio('#FFFFFF','#17663a')>=4.5));
+});

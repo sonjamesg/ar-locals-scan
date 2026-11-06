@@ -41,6 +41,9 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .btn.lg{font-size:15px;padding:0 22px;min-height:50px;letter-spacing:0;text-transform:none;font-family:inherit}
 .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}.btn.primary:hover{background:var(--brand-dark)}
 .btn.ghost{background:#fff;color:var(--brand);border-color:var(--line-strong)}.btn.ghost:hover{background:var(--brand-soft)}
+.btn.success,.btn.scan-clear{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.success:hover,.btn.scan-clear:hover{background:#125230;border-color:#125230;color:#fff}
+.btn.success:focus-visible,.btn.scan-clear:focus-visible{outline:3px solid var(--ok);outline-offset:2px}
 .btn.sm{padding:4px 10px;min-height:0;font-size:12px}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .btn:focus-visible{outline:3px solid var(--brand);outline-offset:2px}

@@ -44,7 +44,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{go('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{go('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{go('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{go('queue');setMsg(null);}}>Lost cards</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{go('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{go('visits');setMsg(null);}}>Visits</button></nav>
    {view==='scan'&&<div className="scan-layout"><div className="scan-card"><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Barcode appears here when scanned…" autoComplete="off" autoFocus className="scan-input"/>
-    <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
+    <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn success lg scan-clear" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
    <StatusCard res={res}/>
       {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
   </div>
