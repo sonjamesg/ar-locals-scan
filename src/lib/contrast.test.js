@@ -14,3 +14,8 @@ describe('brand contrast WCAG AA',()=>{
 describe('NEW badge contrast',()=>{
   it('white on brand navy meets AA',()=>assert.ok(ratio('#FFFFFF',brand)>=4.5));
 });
+describe('status colour contrast',()=>{
+  it('warn orange on warn bg meets large-text AA',()=>assert.ok(ratio('#c05600','#fff4e8')>=3));
+  it('ok green on ok bg meets large-text AA',()=>assert.ok(ratio('#17663a','#e6f5ec')>=3));
+  it('bad red on bad bg meets large-text AA',()=>assert.ok(ratio('#a11b14','#fceceb')>=3));
+});

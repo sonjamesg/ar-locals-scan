@@ -2,9 +2,10 @@ import React,{useEffect,useRef,useState} from 'react';import {createRoot} from '
 import './styles.css';import {sb} from './lib.js';
 import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
 import FeedbackPanel from './components/FeedbackPanel.jsx';
+import FeedbackPage from './components/FeedbackPage.jsx';
 import VisitsPanel from './components/VisitsPanel.jsx';
 import {safeDeskView} from './lib/memberNotFound.js';
-function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const go=v=>setView(safeDeskView(v,ALLOWED));const[fb,setFb]=useState(null); // null | 'compose' | 'list'
+function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits','feedback'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const[prevView,setPrevView]=useState('scan');const viewHold=useRef('scan');const go=v=>{const next=safeDeskView(v,ALLOWED);if(viewHold.current!=='feedback'&&next==='feedback') setPrevView(viewHold.current);viewHold.current=next;setView(next);};const[fb,setFb]=useState(null); // null | 'compose'
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
@@ -52,16 +53,17 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
     <li><b>Scan</b>Check someone in at the desk.</li>
     <li><b>Search Users</b>Find a member by name or email.</li>
     <li><b>Pending / Lost</b>Issue or replace a card.</li>
-    <li><b>Need help?</b>Use ? beside Lock, or email james@atlanticreach.co.uk</li>
+    <li><b>Need help?</b>Use Feedback beside Lock, or email james@atlanticreach.co.uk</li>
    </ul></aside></div>}
    {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')}/>}
       {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
    {view==='visits'&&<VisitsPanel onMsg={setMsg}/>}
+   {view==='feedback'&&<FeedbackPage onBack={()=>go(prevView||'scan')} onWrite={()=>setFb('compose')}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
-  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>setFb('list')}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
-  <FeedbackPanel open={fb} onClose={()=>setFb(null)}/>
+  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>{setFb(null);go('feedback');}}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
+  <FeedbackPanel open={fb} onClose={()=>setFb(null)} onSeeAll={()=>go('feedback')}/>
 </div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));
 createRoot(document.getElementById('root')).render(<PinGate><App/></PinGate>);

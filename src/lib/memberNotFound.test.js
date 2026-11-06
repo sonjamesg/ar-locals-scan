@@ -14,3 +14,8 @@ describe('manual add hide',()=>{
     assert.doesNotMatch(MEMBER_NOT_FOUND_GUIDE,/wrong email/i);
   });
 });
+describe('feedback desk view',()=>{
+  it('allows feedback page view',()=>{
+    assert.equal(safeDeskView('feedback',['scan','feedback']),'feedback');
+  });
+});
