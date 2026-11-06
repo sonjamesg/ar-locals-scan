@@ -3,6 +3,7 @@ import {createPortal} from 'react-dom';
 import {sb} from '../lib.js';
 import {Confirm} from './Members.jsx';
 import {normalizeFeedbackBody,normalizeFeedbackAuthor,formatFeedbackWhen,sortFeedbackNewestFirst,FEEDBACK_MAX,AUTHOR_MAX} from '../lib/feedback.js';
+import {shouldAutofocusNote} from '../lib/feedbackFocus.js';
 
 export default function FeedbackPanel({open,onClose}){
   const[rows,setRows]=useState(null);
@@ -24,17 +25,30 @@ export default function FeedbackPanel({open,onClose}){
     setRows(sortFeedbackNewestFirst(data||[]));
   };
 
+  const openRef=useRef(false);
+  const delRef=useRef(del);delRef.current=del;
+  const onCloseRef=useRef(onClose);onCloseRef.current=onClose;
+
+  useEffect(()=>{
+    if(!open){openRef.current=false;return;}
+    const justOpened=shouldAutofocusNote(openRef.current,open);
+    openRef.current=true;
+    if(justOpened){
+      setOkMsg('');setErr('');setEditId(null);setDel(null);
+      load();
+      const t=setTimeout(()=>ta.current?.focus(),50);
+      return()=>clearTimeout(t);
+    }
+  },[open]);
+
   useEffect(()=>{
     if(!open) return;
-    setOkMsg('');setErr('');setEditId(null);setDel(null);
-    load();
     const prev=document.body.style.overflow;
     document.body.style.overflow='hidden';
-    const t=setTimeout(()=>ta.current?.focus(),50);
-    const onKey=e=>{if(e.key==='Escape'&&!del){e.preventDefault();onClose();}};
+    const onKey=e=>{if(e.key==='Escape'&&!delRef.current){e.preventDefault();onCloseRef.current?.();}};
     window.addEventListener('keydown',onKey);
-    return()=>{clearTimeout(t);window.removeEventListener('keydown',onKey);document.body.style.overflow=prev;};
-  },[open,del,onClose]);
+    return()=>{window.removeEventListener('keydown',onKey);document.body.style.overflow=prev;};
+  },[open]);
 
   if(!open) return null;
 

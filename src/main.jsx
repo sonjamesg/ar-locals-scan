@@ -2,7 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';import {createRoot} from '
 import './styles.css';import {sb} from './lib.js';
 import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');
- const focus=()=>setTimeout(()=>inp.current?.focus(),0);useEffect(focus,[]);
+ const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
   const{data,error}=await sb.rpc('lookup_card',{p_barcode:b});
