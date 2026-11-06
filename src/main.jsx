@@ -1,7 +1,8 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
 import './styles.css';import {sb} from './lib.js';
 import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
-function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');
+import FeedbackPanel from './components/FeedbackPanel.jsx';
+function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');const[fb,setFb]=useState(null); // null | 'compose' | 'list'
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
@@ -31,7 +32,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
     if(!r.error)r=await sb.rpc('lookup_card',{p_barcode:b});}}
   if(r.error)return setMsg({err:1,t:r.error.message});setMsg({t:`Added ${fn} ${ln} — card ${b} linked`});setRes({...(r.data?.[0]||{status:'unknown'}),barcode:b});focus();}
  const s=res?.status;
- return <div className="app"><Header/>
+ return <div className="app"><Header onOpenFeedback={v=>setFb(v||'compose')} onLock={()=>setFb(null)}/>
   <main className="main">
    <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{setView('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{setView('all');setMsg(null);}}>All members</button></nav>
    {view==='scan'&&<><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
@@ -46,6 +47,8 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
-  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span>Scanner <b>● Live</b> · v2.0</span></footer></div>;}
+  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>setFb('list')}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
+  <FeedbackPanel open={fb} onClose={()=>setFb(null)}/>
+</div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));
 createRoot(document.getElementById('root')).render(<PinGate><App/></PinGate>);

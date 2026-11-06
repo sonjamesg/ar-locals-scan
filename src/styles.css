@@ -285,3 +285,15 @@ body::before{background-image:linear-gradient(#00e5c01c 1px,transparent 1px),lin
 .btn.sm{padding:4px 10px;min-height:0;font-size:12px}
 .fb-quote{margin:10px 0 0;padding:10px 12px;border-left:3px solid var(--cy);background:#00e5c00d;white-space:pre-wrap;word-break:break-word}
 @media(max-height:700px){.fb-modal{max-height:94vh}.fb-sub{display:none}.fb-modal h2{font-size:20px}.fb-ta{min-height:56px}}
+.fb-nav{display:flex;gap:8px;padding:0 16px;margin-top:4px;flex-shrink:0}
+.fb-nav .btn{flex:1;justify-content:center}
+.fb-ok-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fb-see{letter-spacing:.06em;text-transform:uppercase}
+.fb-list-wrap-full{flex:1 1 auto}
+.fb-more{display:flex;justify-content:center;padding:12px 0 4px}
+.fb-list-foot{flex:0 0 auto;display:flex;justify-content:flex-end;padding:12px 16px 16px;border-top:1px solid #ffffff0a}
+.foot-right{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.foot-fb{background:none;border:none;color:var(--cy);font:inherit;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.foot-fb:hover{color:#7dffef}
+.foot-ver{opacity:.7}
+@media(max-width:900px){.foot-right{margin-left:0}}
