@@ -5,7 +5,7 @@ export function LostPanel({onDone,onMsg}){const[sel,setSel]=useState(null);const
   if(error)return onMsg({err:1,t:error.message});onMsg({t:`${label(sel)} added to the lost cards list`});onDone();}
  return <section className="panel"><h2>Search users</h2>
   {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={h=>{setSel(h);onMsg({t:`${label(h)} added to the lost cards list`});}}/><UnlinkCard h={sel} onUnlinked={h=>{setSel(h);onMsg({t:`Card unlinked from ${label(h)} — now pending a new card`});}}/></Selected>:null}
-  <div hidden={!!sel}><SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members — try the original signup email or name"/><p className="muted not-found-guide">{MEMBER_NOT_FOUND_SHORT}</p></div>
+  <div hidden={!!sel}><SearchPick onPick={setSel} withBookwhen={false} emptyText="No matching members — try the original signup email or name" emptyGuide={<><b>Cannot find them?</b> {MEMBER_NOT_FOUND_SHORT}</>}/></div>
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={sel}/></Confirm>}
  </section>;}
 export function QueuePanel({onMsg}){const[rows,setRows]=useState(null);const[sel,setSel]=useState(null);const[bc,setBc]=useState('');const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);

@@ -18,17 +18,22 @@ export function MemberInfo({h}){const n=nameOf(h);return <div className="hit-inf
  <span className="hit-meta">{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.card_barcode?`card ${h.card_barcode}`:'no card yet',h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
 export function Confirm({title,children,onYes,onNo,busy}){return <div className="modal-bg"><div className="modal" role="dialog">
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
-export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const[busy,setBusy]=useState(false);
- useEffect(()=>{if(q.trim().length<2){setHits([]);return;}const t=setTimeout(async()=>{setBusy(true);
+export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
+ useEffect(()=>{if(q.trim().length<2){setHits([]);setErr('');return;}const t=setTimeout(async()=>{setBusy(true);setErr('');
   const[l,bw]=await Promise.all([sb.rpc('search_members',{p_q:q}),withBookwhen?sb.functions.invoke('bookwhen-search',{body:{q}}).catch(()=>({data:[]})):{data:[]}]);
+  if(l.error){setErr(l.error.message);setHits([]);setBusy(false);return;}
   const loc=(l.data||[]).map(m=>({...m,src:'Local'}));const ids=new Set(loc.map(m=>m.bookwhen_customer_id).filter(Boolean));
-  setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,email:x.email||x.email_hint,src:'Bookwhen'}))]);setBusy(false);},250);return()=>clearTimeout(t);},[q]);
- return{hits,busy};}
-export function SearchPick({onPick,withBookwhen=true,emptyText='No matches'}){const[q,setQ]=useState('');const{hits,busy}=useSearch(q,withBookwhen);
- return <><input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search by name or email…"/>
+  setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,email:x.email||x.email_hint,src:'Bookwhen'}))]);setBusy(false);},250);return()=>clearTimeout(t);},[q,withBookwhen]);
+ return{hits,busy,err};}
+export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',emptyGuide=null}){const[q,setQ]=useState('');const{hits,busy,err}=useSearch(q,withBookwhen);
+ const empty=!busy&&!err&&q.trim().length>=2&&!hits.length;
+ return <><input className="big-input" value={q} onChange={e=>setQ(e.target.value)} autoFocus placeholder="Search by name or email…" aria-label="Search by name or email"/>
+  {err&&<div className="err md-err" role="alert">Search failed — {err}</div>}
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
-   {!busy&&q.trim().length>=2&&!hits.length&&<li className="muted">{emptyText}</li>}
-   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/><BwChips h={h}/></button><OpenBtn h={h}/></li>)}</ul></>;}
+   {empty&&<li className="muted">{emptyText}</li>}
+   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/><BwChips h={h}/></button><OpenBtn h={h}/></li>)}</ul>
+  {empty&&emptyGuide&&<div className="not-found-guide">{emptyGuide}</div>}
+ </>;}
 export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
  useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));},[h.id]);useEffect(()=>{setSt('');},[h.id]);
  const editable=h.id&&h.src!=='Bookwhen';const dirty=editable&&(f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim());

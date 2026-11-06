@@ -4,9 +4,7 @@ export default function LinkPanel({barcode,onLink}){const[sel,setSel]=useState(n
  const go=async fn=>{setBusy(true);try{await fn();}finally{setBusy(false);setAsk(null);}};
  return <section className="panel"><h2>Link card <code>{barcode}</code> to a member</h2>
   {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={setSel}/><UnlinkCard h={sel} onUnlinked={setSel}/><button className="btn ghost lg" onClick={()=>setAsk({t:'link'})}>Link card</button></Selected>:null}
-  <div hidden={!!sel}><SearchPick onPick={setSel} emptyText="No matches — try the original signup email or name"/>
-   <div className="not-found-guide"><b>Cannot find them?</b>{MEMBER_NOT_FOUND_GUIDE}</div>
-  </div>
+  <div hidden={!!sel}><SearchPick onPick={setSel} emptyText="No matches — try the original signup email or name" emptyGuide={<><b>Cannot find them?</b>{MEMBER_NOT_FOUND_GUIDE}</>}/></div>
   {ask?.t==='link'&&<Confirm title="Confirm card link" busy={busy} onNo={()=>setAsk(null)} onYes={()=>go(()=>onLink(sel))}>
    <p>Link card <code>{barcode}</code> to:</p><MemberInfo h={sel}/></Confirm>}
  </section>;}

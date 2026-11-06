@@ -10,14 +10,14 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .app{min-height:100vh;display:flex;flex-direction:column}
 .hdr{display:flex;align-items:center;gap:16px;padding:14px 24px;min-height:92px;background:var(--brand);color:#fff;flex-wrap:wrap}
 .logo{height:52px;width:auto;display:block;flex-shrink:0}
-.hdr-title{font-size:20px;font-weight:700;display:flex;flex-direction:column;line-height:1.2;color:#fff;border:0;padding:0;min-width:0}
-.hdr-title span{font-size:13px;font-weight:500;opacity:.92;letter-spacing:0;text-transform:none;color:#fff}
+.hdr-title{font-size:24px;font-weight:700;display:flex;flex-direction:column;line-height:1.2;color:#fff;border:0;padding:0;min-width:0}
+.hdr-title span{font-size:14px;font-weight:500;opacity:.92;letter-spacing:0;text-transform:none;color:#fff}
 .hdr-title span::before{content:none}
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.clock{text-align:right;color:#fff;font:700 20px/1.15 var(--font);display:flex;flex-direction:column;white-space:nowrap}
-.clock span{font:500 12px/1.3 var(--font);opacity:.92;letter-spacing:0;text-transform:none;color:#fff}
+.clock{text-align:right;color:#fff;font:700 24px/1.15 var(--font);display:flex;flex-direction:column;white-space:nowrap}
+.clock span{font:500 13px/1.3 var(--font);opacity:.92;letter-spacing:0;text-transform:none;color:#fff}
 .hdr-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.hdr .hdr-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:0;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.1);color:#fff;font:700 13px var(--font);letter-spacing:0;text-transform:none;text-decoration:none;box-shadow:none;cursor:pointer}
+.hdr .hdr-btn{font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:0;min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.1);color:#fff;font:700 13px var(--font);letter-spacing:0;text-transform:none;text-decoration:none;box-shadow:none;cursor:pointer}
 .hdr .hdr-btn:hover{background:rgba(255,255,255,.18);border-color:#fff;color:#fff}
 .hdr .hdr-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .hdr .hdr-btn-icon{min-width:40px;width:40px;padding:0;font-size:18px}
