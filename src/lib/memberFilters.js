@@ -2,8 +2,13 @@
 export const MONTH=30*864e5;
 export const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at).getTime()<MONTH;
 export const isCancelled=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';
-/** Linked = currently has an active card association (card_barcode from list_members). */
-export const isLinked=r=>!!(r&&r.card_barcode);
+/** Usable linked card = non-empty barcode and not marked lost. Pending/ACTIVE alone is not linked. */
+export const isLinked=r=>!!(r&&String(r.card_barcode||'').trim())&&!r.lost_card_at;
+/** List-row badge: Card linked / Card unlinked from real barcode (not membership status). */
+export function cardLinkStatus(r){
+  if(isLinked(r)) return {linked:true, label:'Card linked', tone:'ok'};
+  return {linked:false, label:'Card unlinked', tone:'warn'};
+}
 export function cardCounts(rows){
   const list=rows||[];
   let linked=0;

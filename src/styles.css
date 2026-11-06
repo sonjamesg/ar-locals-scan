@@ -245,6 +245,10 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .am-banner.warn{background:var(--warn-bg);border-color:var(--warn-line)}
 .am-banner.ok{background:var(--ok-bg);border-color:#b7e0c5}
 .am-banner b{display:block;font-size:13px;margin-bottom:2px}
+.hit-name-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.card-link-badge{font:700 11px var(--font);letter-spacing:.02em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);line-height:1.2;white-space:nowrap}
+.card-link-badge.card-linked{background:var(--ok-bg);color:var(--ok);border-color:#b7e0c5}
+.card-link-badge.card-unlinked{background:var(--warn-bg);color:#8a5a00;border-color:var(--warn-line)}
 .am-chips{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
 .amc{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:#f4f7f8;color:var(--txt)}
 .amc-st.bw-ok{background:var(--ok-bg);color:var(--ok);border-color:#b7e0c5}
