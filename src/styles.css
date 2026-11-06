@@ -305,7 +305,8 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:2px}
 .sess-label{font:700 11px var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:10px 0 6px}
 .sess-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
-.sess-item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafcfd}
+.sess-item{display:flex;flex-direction:column;gap:8px;align-items:stretch;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafcfd}
+.sess-item-top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
 .sess-title{font-size:14px;font-weight:700;color:var(--txt);line-height:1.25}
 .sess-when{font-size:12px;color:var(--mut);margin-top:2px}
 .sess-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
@@ -327,8 +328,12 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-att-note{margin:0;font-size:11px;line-height:1.35;max-width:34ch}
 .sess-att-asof{font-size:11px;margin:6px 0}
 .sess-att-empty{margin-top:8px}
-.sess-att-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.sess-att-item{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.sess-att-name{font-size:13px;font-weight:700}
-.sess-att-meta{font-size:11px;margin-top:2px}
-.sess-att-hint{font-size:11px;color:#8a5a00;margin-top:4px;font-weight:600}
+.sess-names{border-top:1px dashed var(--line);padding-top:8px}
+.sess-names-status{font-size:12px}
+.sess-names-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:0;padding:0;cursor:pointer;font:700 12px var(--font);color:var(--txt);text-align:left}
+.sess-names-disclaimer{margin:6px 0 0;font-size:11px;color:#8a5a00;font-weight:600;line-height:1.35}
+.sess-names-empty{margin-top:6px;font-size:12px}
+.sess-names-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.sess-name-btn{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:700 13px var(--font);color:var(--brand);cursor:pointer}
+.sess-name-btn:hover{border-color:var(--brand)}
+.sess-name-btn:disabled{opacity:.5;cursor:default}

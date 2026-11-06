@@ -27,3 +27,15 @@ describe('scan layout — independent natural height',()=>{
     assert.match(panel,/visibleUpcoming/);
   });
 });
+
+describe('synced names sit under each session card',()=>{
+  it('groups by event id and does not render a detached attendee list',()=>{
+    assert.match(panel,/attendeesForEvent/);
+    assert.match(panel,/sess-names/);
+    assert.match(panel,/not synced yet/);
+    assert.match(panel,/Re-sync attendees/);
+    assert.match(panel,/onSearchName/);
+    assert.doesNotMatch(panel,/sess-att-list/);
+    assert.doesNotMatch(panel,/people\.map/);
+  });
+});

@@ -5,7 +5,7 @@ import {dirname,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {
   syncEventAllowlist,assertAllowlistedIds,mergeSnapshots,flattenAttendees,
-  searchQueryFromAttendeeName,snapshotSummary,
+  searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,
 } from './attendeeSync.js';
 import {parseAttendancesHtml,parseAttendedMarker,eventIdFromHref} from '../../extension/parseAttendances.js';
 
@@ -83,5 +83,44 @@ describe('Registration excluded from sync allowlist',()=>{
       [{id:'ev-ccc-20261106140000',title:'Course registration day'}]
     );
     assert.deepEqual(list.map(e=>e.title),['Indoor swim','Course registration day']);
+  });
+});
+
+describe('attendeesForEvent groups synthetic names by event id',()=>{
+  const snaps=[
+    {event_id:'ev-aaa-20261106120000',status:'ok',captured_at:'2026-11-06T15:00:00Z',attendees:[{name:'Sam Example',identity:'name_only'},{name:'Jordan Example',identity:'name_only'}]},
+    {event_id:'ev-bbb-20261106130000',status:'failed',captured_at:'2026-11-06T15:00:01Z',attendees:[{name:'Should Not Surface'}]},
+    {event_id:'ev-ccc-20261106140000',status:'ok',captured_at:'2026-11-06T15:00:02Z',attendees:[]},
+    {event_id:'ev-ddd-20261106150000',status:'partial',incomplete:true,captured_at:'2026-11-06T15:00:03Z',attendees:[{name:'Riley Example',identity:'name_only'}]},
+  ];
+  it('returns matching names for a synced session',()=>{
+    const g=attendeesForEvent(snaps,'ev-aaa-20261106120000');
+    assert.equal(g.synced,true);
+    assert.equal(g.failed,false);
+    assert.deepEqual(g.attendees.map(a=>a.name),['Sam Example','Jordan Example']);
+    assert.equal(g.captured_at,'2026-11-06T15:00:00Z');
+  });
+  it('missing snapshot is not synced — not an empty verified list',()=>{
+    const g=attendeesForEvent(snaps,'ev-zzz-20261106120000');
+    assert.equal(g.synced,false);
+    assert.equal(g.attendees.length,0);
+    assert.equal(g.failed,false);
+  });
+  it('failed snapshot exposes no names',()=>{
+    const g=attendeesForEvent(snaps,'ev-bbb-20261106130000');
+    assert.equal(g.synced,true);
+    assert.equal(g.failed,true);
+    assert.equal(g.attendees.length,0);
+  });
+  it('empty successful snapshot is synced with zero names',()=>{
+    const g=attendeesForEvent(snaps,'ev-ccc-20261106140000');
+    assert.equal(g.synced,true);
+    assert.equal(g.failed,false);
+    assert.equal(g.attendees.length,0);
+  });
+  it('partial snapshot flags incomplete',()=>{
+    const g=attendeesForEvent(snaps,'ev-ddd-20261106150000');
+    assert.equal(g.incomplete,true);
+    assert.equal(g.attendees[0].name,'Riley Example');
   });
 });

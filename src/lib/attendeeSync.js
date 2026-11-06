@@ -56,6 +56,21 @@ export function flattenAttendees(snapshots){
   return rows;
 }
 
+/** One session's snapshot. Missing means not synced — not an empty verified register. */
+export function attendeesForEvent(snapshots, eventId){
+  const snap=(snapshots||[]).find(s=>s?.event_id===eventId)||null;
+  if(!snap) return {snapshot:null, attendees:[], failed:false, captured_at:null, incomplete:false, synced:false};
+  const failed=snap.status==='failed';
+  return {
+    snapshot:snap,
+    attendees:failed?[]:(snap.attendees||[]),
+    failed,
+    captured_at:snap.captured_at||null,
+    incomplete:!!(snap.incomplete||snap.status==='partial'),
+    synced:true,
+  };
+}
+
 /** Split a display name into first/last for Search Users prefill only — not identity proof. */
 export function searchQueryFromAttendeeName(name){
   const n=String(name||'').replace(/\s+/g,' ').trim();

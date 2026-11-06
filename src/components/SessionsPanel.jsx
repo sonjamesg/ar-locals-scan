@@ -5,7 +5,7 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,flattenAttendees,searchQueryFromAttendeeName,snapshotSummary
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
 import {IconClock,IconExternalLink} from './Icons.jsx';
@@ -13,22 +13,65 @@ import {IconClock,IconExternalLink} from './Icons.jsx';
 const POLL_MS=45_000;
 const UPCOMING_PREVIEW=3;
 
-function SessionRow({s}){
+function SessionNames({group, onSearchName}){
+  const[open,setOpen]=useState(false);
+  if(!group?.synced){
+    return <div className="sess-names">
+      <div className="sess-names-status muted">Names · not synced yet</div>
+    </div>;
+  }
+  if(group.failed){
+    return <div className="sess-names">
+      <div className="sess-names-status muted">Names · last sync failed</div>
+    </div>;
+  }
+  const n=(group.attendees||[]).length;
+  const when=group.captured_at?formatAsOf(group.captured_at):'';
+  return <div className="sess-names">
+    <button type="button" className="sess-names-toggle" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
+      <span>Names ({n}){when?` · ${when}`:''}{group.incomplete?' · incomplete':''}</span>
+      <span aria-hidden="true">{open?'▾':'▸'}</span>
+    </button>
+    {open&&<>
+      <p className="sess-names-disclaimer">From Bookwhen — Possible member (name only), not a verified Locals cardholder.</p>
+      {n===0
+        ? <div className="muted sess-names-empty">No names on this register snapshot</div>
+        : <ul className="sess-names-list">
+            {group.attendees.map((a,i)=>{
+              const q=searchQueryFromAttendeeName(a.name);
+              return <li key={(a.booking_id||'')+':'+a.name+':'+i}>
+                <button type="button" className="sess-name-btn" disabled={!q}
+                  onClick={()=>onSearchName&&onSearchName(q)}
+                  title="Opens Search Users with this name — confirm before linking a card">
+                  {a.name}
+                </button>
+                {a.child?<span className="muted"> child</span>:null}
+              </li>;
+            })}
+          </ul>}
+    </>}
+  </div>;
+}
+
+function SessionRow({s, nameGroup, onSearchName}){
   const cap=capacityLabel(s.attendee_count, s.attendee_limit);
   const href=sessionOpenUrl(s);
   const label=sessionLinkLabel(s);
   return <li className="sess-item">
-    <div className="sess-main">
-      <div className="sess-title">{s.title}</div>
-      <div className="sess-when">{formatSessionRange(s.start_at,s.end_at)}</div>
-      <div className="sess-meta">
-        {cap&&<span className="sess-cap">{cap}</span>}
-        {(s.tags||[]).slice(0,3).map(t=><span key={t} className="sess-tag">{t}</span>)}
+    <div className="sess-item-top">
+      <div className="sess-main">
+        <div className="sess-title">{s.title}</div>
+        <div className="sess-when">{formatSessionRange(s.start_at,s.end_at)}</div>
+        <div className="sess-meta">
+          {cap&&<span className="sess-cap">{cap}</span>}
+          {(s.tags||[]).slice(0,3).map(t=><span key={t} className="sess-tag">{t}</span>)}
+        </div>
       </div>
+      <a className="btn ghost sm sess-open" href={href} target="_blank" rel="noopener noreferrer" title={label}>
+        <IconExternalLink/><span>{label==='Open register'?'Register':'Schedule'}</span>
+      </a>
     </div>
-    <a className="btn ghost sm sess-open" href={href} target="_blank" rel="noopener noreferrer" title={label}>
-      <IconExternalLink/><span>{label==='Open register'?'Register':'Schedule'}</span>
-    </a>
+    <SessionNames group={nameGroup} onSearchName={onSearchName}/>
   </li>;
 }
 
@@ -127,7 +170,6 @@ export default function SessionsPanel({onSearchName}){
     else setSyncErr('');
   }
 
-  const people=flattenAttendees(snapshots);
   const sum=snapshotSummary(snapshots);
   const lastCap=snapshots.reduce((m,s)=>Math.max(m, Date.parse(s.captured_at||0)||0),0);
 
@@ -157,11 +199,11 @@ export default function SessionsPanel({onSearchName}){
 
       {current.length>0&&<>
         <div className="sess-label">On now</div>
-        <ul className="sess-list">{current.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
+        <ul className="sess-list">{current.map(s=><SessionRow key={s.id} s={s} nameGroup={attendeesForEvent(snapshots,s.id)} onSearchName={onSearchName}/>)}</ul>
       </>}
       {preview.shown.length>0&&<>
         <div className="sess-label">Coming up</div>
-        <ul className="sess-list">{preview.shown.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
+        <ul className="sess-list">{preview.shown.map(s=><SessionRow key={s.id} s={s} nameGroup={attendeesForEvent(snapshots,s.id)} onSearchName={onSearchName}/>)}</ul>
       </>}
       {preview.truncated&&!expanded&&(
         <button type="button" className="btn ghost sm sess-more" onClick={()=>setExpanded(true)}>
@@ -178,7 +220,7 @@ export default function SessionsPanel({onSearchName}){
         <div className="sess-att-head">
           <div>
             <div className="sess-label" style={{marginTop:12}}>Attendees (manual)</div>
-            <p className="muted sess-att-note">Press Re-sync to read open registers for sessions shown above. Names only — not verified Locals matches. Does not run on refresh.</p>
+            <p className="muted sess-att-note">Press Re-sync to read open registers. Names appear under each session. Name only — not a verified Locals match. Does not run on refresh.</p>
           </div>
           <button type="button" className="btn primary sm" onClick={reSyncAttendees} disabled={syncBusy||!allowlist.length}
             title="Opens each session register in Bookwhen via the extension (signed-in browser)">
@@ -194,20 +236,6 @@ export default function SessionsPanel({onSearchName}){
           {' · '}not live
         </div>}
         {!snapshots.length&&!syncBusy&&<div className="muted sess-empty sess-att-empty">No attendee snapshot yet — press Re-sync attendees when ready.</div>}
-        {people.length>0&&<ul className="sess-att-list">
-          {people.map((a,i)=><li key={a.event_id+':'+(a.booking_id||'')+':'+a.name+':'+i} className="sess-att-item">
-            <div className="sess-att-main">
-              <div className="sess-att-name">{a.name}</div>
-              <div className="sess-att-meta muted">{a.event_title}{a.event_start_at?` · ${formatSessionRange(a.event_start_at,a.event_end_at||a.event_start_at)}`:''}{a.child?' · child':''}{a.attended&&a.attended!=='unknown'?` · attended ${a.attended}`:''}{a.incomplete||a.snapshot_status==='partial'?' · incomplete snapshot':''}</div>
-              <div className="sess-att-hint">Possible member — confirm identity / signup email</div>
-            </div>
-            <button type="button" className="btn ghost sm" disabled={!searchQueryFromAttendeeName(a.name)}
-              onClick={()=>onSearchName&&onSearchName(searchQueryFromAttendeeName(a.name))}
-              title="Opens Search Users with this name — confirm before linking a card">
-              Search Users
-            </button>
-          </li>)}
-        </ul>}
       </div>
     </div>
 
