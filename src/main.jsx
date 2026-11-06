@@ -36,8 +36,14 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    if(e.key.length===1){buf+=e.key;if(buf.length>1)e.preventDefault();}};
   window.addEventListener('keydown',onKey,true);return()=>window.removeEventListener('keydown',onKey,true);},[]);
  async function link(h){const p=h.src==='Local'?{p_member_id:h.id}:{p_first_name:h.first_name,p_last_name:h.last_name,p_email:h.email,p_bookwhen_customer_id:h.bookwhen_customer_id,p_ends_at:h.membership_ends_at};
-  const{error}=await sb.rpc('link_card',{p_barcode:res.barcode,...p});if(error)return setMsg({err:1,t:error.message});
-  setMsg({t:`Card linked to ${label(h)}`});const{data}=await sb.rpc('lookup_card',{p_barcode:res.barcode});setRes({...data[0],barcode:res.barcode});focus();}
+  // Scan-desk confirmed first link counts as a check-in when eligible (Days/This month).
+  const{data,error}=await sb.rpc('link_card_from_scan',{p_barcode:res.barcode,...p});
+  if(error)return setMsg({err:1,t:error.message});
+  const row=Array.isArray(data)?data[0]:data;
+  const visit={recorded:!!row?.recorded,suppressed:!!row?.suppressed,reason:row?.reason,visit_id:row?.visit_id,visited_at:row?.visited_at,last_counted_at:row?.last_counted_at,visits_today:row?.visits_today,next_eligible_at:row?.next_eligible_at};
+  setMsg({t:visit.recorded?`Card linked to ${label(h)} · visit recorded`:`Card linked to ${label(h)}`});
+  setRes({status:row?.status||'valid',first_name:row?.first_name,last_name:row?.last_name,membership_ends_at:row?.membership_ends_at,member_id:row?.member_id,barcode:res.barcode,visit});
+  focus();}
  const s=res?.status;
  return <div className="app"><Header onOpenFeedback={v=>setFb(v||'compose')} onLock={()=>setFb(null)}/>
   <main className="main">

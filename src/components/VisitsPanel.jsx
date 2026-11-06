@@ -30,7 +30,7 @@ export default function VisitsPanel({onMsg}){
 
   return <section className="panel visits-panel">
     <h2>Visits</h2>
-    <p className="visits-note">Reception check-ins from the Scan desk only. First scan each day counts; another visit the same day counts after 3 hours. Leaderboard ranks by <b>distinct days</b> in {VISIT_TZ} (fair for member of the month). Tracking starts from when this feature went live — past gym visits were not imported. Scans show someone checked in at reception; they do not prove floor entry beyond that.</p>
+    <p className="visits-note">Reception check-ins from the Scan desk (scans and the first confirmed card link). First check-in each day counts; another the same day counts after 3 hours. Leaderboard ranks by <b>distinct days</b> in {VISIT_TZ} (fair for member of the month). Tracking starts from when this feature went live — past gym visits were not imported. Scans show someone checked in at reception; they do not prove floor entry beyond that.</p>
     <div className="visits-controls">
       <label>Month<select value={`${year}-${month}`} onChange={e=>{const[y,m]=e.target.value.split('-').map(Number);setYear(y);setMonth(m);}}>
         {months.map(x=><option key={x.label} value={`${x.y}-${x.m}`}>{x.label}</option>)}
