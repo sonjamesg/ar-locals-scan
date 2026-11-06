@@ -10,3 +10,7 @@ describe('brand contrast WCAG AA',()=>{
   it('brand on white >=3',()=>assert.ok(ratio(brand,'#FFFFFF')>=3));
   it('success/error on soft bgs >=4.5',()=>{assert.ok(ratio('#17663a','#e6f5ec')>=4.5);assert.ok(ratio('#a11b14','#fceceb')>=4.5);});
 });
+
+describe('NEW badge contrast',()=>{
+  it('white on brand navy meets AA',()=>assert.ok(ratio('#FFFFFF',brand)>=4.5));
+});
