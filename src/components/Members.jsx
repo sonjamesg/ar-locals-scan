@@ -1,3 +1,4 @@
+import VisitStats from './VisitStats.jsx';
 import {useEffect,useState} from 'react';import {sb} from '../lib.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
@@ -43,6 +44,7 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
   <label>First name<input value={f} onChange={e=>{setF(e.target.value);setSt('');}} placeholder="First name"/></label>
   <label>Last name<input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name"/></label></form>}
  {extra&&<div className="sel-extra">{extra}</div>}
+ {h.id&&h.src!=='Bookwhen'&&<VisitStats memberId={h.id}/>}
  <div className="sel-foot"><div className="sel-left">{children}</div><div className="sel-right">{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
   {editable&&<button className={'btn lg '+(dirty?'primary':'ghost')} disabled={st==='Saving…'} onClick={save}>Save</button>}</div></div></div>;}
 export function UnlinkCard({h,onUnlinked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');

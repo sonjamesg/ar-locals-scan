@@ -297,3 +297,16 @@ body::before{background-image:linear-gradient(#00e5c01c 1px,transparent 1px),lin
 .foot-fb:hover{color:#7dffef}
 .foot-ver{opacity:.7}
 @media(max-width:900px){.foot-right{margin-left:0}}
+.visits-panel .visits-note{color:var(--mut);font-size:14px;line-height:1.45;max-width:70ch;margin:0 0 14px}
+.visits-controls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.visits-controls label{display:flex;flex-direction:column;gap:6px;font:700 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--cy)}
+.visits-controls select{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#080b10;color:var(--txt);min-width:200px}
+.visits-stats{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:16px}
+.visits-h{margin:18px 0 4px;font-size:18px}
+.visits-sub{margin:0 0 10px}
+.visits-hit{display:flex;align-items:center;gap:14px;width:100%;text-align:left}
+.visits-rank{font:800 18px var(--mono);color:var(--cy);min-width:42px}
+.visits-row .hit{cursor:default}
+.visit-stats{margin:0 22px 14px}
+.visit-hist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font:600 12px var(--mono);color:var(--mut)}
+.st-hint.ok{color:var(--ok)}.st-hint.err{color:#ff6b6b}

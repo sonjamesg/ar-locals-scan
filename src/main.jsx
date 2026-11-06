@@ -2,13 +2,28 @@ import React,{useEffect,useRef,useState} from 'react';import {createRoot} from '
 import './styles.css';import {sb} from './lib.js';
 import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AddMemberPanel from './components/AddMemberPanel.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
 import FeedbackPanel from './components/FeedbackPanel.jsx';
+import VisitsPanel from './components/VisitsPanel.jsx';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const[view,setView]=useState('scan');const[fb,setFb]=useState(null); // null | 'compose' | 'list'
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
  function scan(e){e.preventDefault();runScan(code.trim());}
  async function runScan(b){if(!b||viewRef.current!=='scan')return;setMsg(null);setCode('');
-  const{data,error}=await sb.rpc('lookup_card',{p_barcode:b});
-  setRes(error||!data?.[0]?{status:'unknown',err:error?.message,barcode:b}:{...data[0],barcode:b});
-  if(data?.[0]?.status&&data[0].status!=='unknown')focus();}
+  // Scan desk only: record_scan_visit (lookup_card stays read-only for Search/Check/link).
+  const{data,error}=await sb.rpc('record_scan_visit',{p_barcode:b});
+  const row=Array.isArray(data)?data[0]:data;
+  if(error){
+    // Fall back to lookup for access display, but never claim a saved visit.
+    const look=await sb.rpc('lookup_card',{p_barcode:b});
+    const base=look.data?.[0]||{status:'unknown'};
+    setRes({...base,barcode:b,visit:{error:error.message}});
+    setMsg({err:1,t:'Check-in not recorded — '+error.message});
+    return;
+  }
+  if(!row){setRes({status:'unknown',barcode:b});return;}
+  const visit={recorded:!!row.recorded,suppressed:!!row.suppressed,reason:row.reason,visit_id:row.visit_id,visited_at:row.visited_at,last_counted_at:row.last_counted_at,visits_today:row.visits_today,next_eligible_at:row.next_eligible_at};
+  setRes({status:row.status||'unknown',first_name:row.first_name,last_name:row.last_name,membership_ends_at:row.membership_ends_at,member_id:row.member_id,barcode:b,visit});
+  if(row.status==='valid'&&row.recorded) setMsg({t:'Visit recorded'});
+  else if(row.status==='valid'&&row.suppressed) setMsg({t:'Already checked in — another visit counts after 3 hours'});
+  if(row.status&&row.status!=='unknown')focus();}
  const viewRef=useRef(view);viewRef.current=view;const scanRef=useRef(runScan);scanRef.current=runScan;
  useEffect(()=>{let buf='',last=0;const GAP=100;
   const isField=el=>el&&(el.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
@@ -34,7 +49,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
  const s=res?.status;
  return <div className="app"><Header onOpenFeedback={v=>setFb(v||'compose')} onLock={()=>setFb(null)}/>
   <main className="main">
-   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{setView('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{setView('all');setMsg(null);}}>All members</button></nav>
+   <nav className="row tabs"><button className={`btn ${view==='scan'?'primary':'ghost'}`} onClick={()=>{setView('scan');focus();}}>Scan</button><button className={`btn ${view==='lost'?'primary':'ghost'}`} onClick={()=>{setView('lost');setMsg(null);}}>Search Users</button><button className={`btn ${view==='add'?'primary':'ghost'}`} onClick={()=>{setView('add');setMsg(null);}}>Add Member</button><button className={`btn ${view==='pending'?'primary':'ghost'}`} onClick={()=>{setView('pending');setMsg(null);}}>Pending cards</button><button className={`btn ${view==='queue'?'primary':'ghost'}`} onClick={()=>{setView('queue');setMsg(null);}}>Lost cards list</button><button className={`btn ${view==='all'?'primary':'ghost'}`} onClick={()=>{setView('all');setMsg(null);}}>All members</button><button className={`btn ${view==='visits'?'primary':'ghost'}`} onClick={()=>{setView('visits');setMsg(null);}}>Visits</button></nav>
    {view==='scan'&&<><form className="scan" onSubmit={scan}><label htmlFor="scan">Scan card</label>
     <div className="scan-row"><input id="scan" ref={inp} value={code} onChange={e=>setCode(e.target.value)} placeholder="Waiting for barcode…" autoComplete="off" autoFocus className="scan-input"/>
     <button className="btn primary lg">Check</button>{res&&<button type="button" className="btn ghost lg" onClick={()=>{setRes(null);setMsg(null);focus();}}>Clear</button>}</div></form>
@@ -46,6 +61,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
+   {view==='visits'&&<VisitsPanel onMsg={setMsg}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
   </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card £10 / 12 mo</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>setFb('list')}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
   <FeedbackPanel open={fb} onClose={()=>setFb(null)}/>
