@@ -50,10 +50,10 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .scan-layout{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
 .scan-card,.panel,.help-panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;box-shadow:none}
 /* Scan card sizes to its own content — never stretched by a long Sessions list */
-.scan-card{display:flex;flex-direction:column;height:auto;min-height:280px;box-sizing:border-box}
+.scan-card{display:flex;flex-direction:column;height:auto;min-height:0;box-sizing:border-box;align-self:start}
 .help-panel{height:auto;box-sizing:border-box}
 /* Status fills the scan card only (equal-ish roomy idle), not the sessions column height */
-.scan-card>.status{flex:1 1 auto}
+.scan-card>.status{flex:0 0 auto;align-self:stretch}
 .panel h2{margin:0 0 14px;font-size:22px;font-weight:700;color:var(--txt)}
 .panel code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--brand-soft);border:1px solid var(--line);padding:2px 8px;border-radius:6px;color:var(--brand)}
 .scan label,.scan-card>label{display:block;font-size:13px;font-weight:700;color:var(--mut);margin-bottom:8px;letter-spacing:.02em;text-transform:uppercase}
@@ -95,9 +95,9 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .fb-page-list{margin-top:4px}
 .fb-list-page{gap:12px}.fb-list-page .fb-item{padding:16px 18px}
 .fb-modal-compose{max-width:520px;max-height:min(90vh,720px)}
-.status{position:relative;overflow:hidden;border-radius:14px;padding:28px 24px;display:flex;align-items:center;gap:20px;min-height:0;margin-top:18px;background:#f4f9fa;border:1.5px solid #d3e2e7;animation:none;box-shadow:none}
+.status{position:relative;overflow:hidden;border-radius:14px;padding:22px 20px;display:flex;align-items:flex-start;gap:16px;min-height:0;height:auto;margin-top:18px;background:#f4f9fa;border:1.5px solid #d3e2e7;animation:none;box-shadow:none}
 .status::before,.status::after,.corner,.reticle,.idle-icon{display:none!important}
-.status.idle{flex-direction:column;justify-content:flex-start;text-align:center;gap:8px;color:var(--mut);min-height:160px;padding-top:36px;padding-bottom:28px}
+.status.idle{flex-direction:column;justify-content:flex-start;text-align:center;gap:8px;color:var(--mut);min-height:0;padding-top:28px;padding-bottom:28px}
 .idle-t{font:700 22px var(--font);color:var(--txt);letter-spacing:0;display:flex;align-items:center;gap:8px;justify-content:center}
 .idle-t::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--brand);display:inline-block}
 .idle-t::after{content:none}
