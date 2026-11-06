@@ -4,6 +4,7 @@ import Header from './components/Header.jsx';import StatusCard from './component
 import FeedbackPanel from './components/FeedbackPanel.jsx';
 import FeedbackPage from './components/FeedbackPage.jsx';
 import VisitsPanel from './components/VisitsPanel.jsx';
+import SessionsPanel from './components/SessionsPanel.jsx';
 import {safeDeskView} from './lib/memberNotFound.js';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits','feedback'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const[prevView,setPrevView]=useState('scan');const viewHold=useRef('scan');const go=v=>{const next=safeDeskView(v,ALLOWED);if(viewHold.current!=='feedback'&&next==='feedback') setPrevView(viewHold.current);viewHold.current=next;setView(next);};const[fb,setFb]=useState(null); // null | 'compose'
  const focus=()=>setTimeout(()=>{if(document.querySelector('[aria-modal="true"]'))return;inp.current?.focus();},0);useEffect(focus,[]);
@@ -54,13 +55,16 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    <StatusCard res={res}/>
       {s==='unknown'&&<LinkPanel key={res.barcode} barcode={res.barcode} onLink={link}/>}
   </div>
-  <aside className="help-panel panel"><h3>Quick help</h3><p className="muted">Simple steps for reception.</p>
+  <div className="scan-side">
+   <SessionsPanel/>
+   <aside className="help-panel panel"><h3>Quick help</h3><p className="muted">Simple steps for reception.</p>
    <ul className="help-list">
     <li><b>Scan</b>Check someone in at the desk.</li>
     <li><b>Search Users</b>Find a member by name or email.</li>
     <li><b>Pending / Lost</b>Issue or replace a card.</li>
     <li><b>Need help?</b>Use Feedback beside Lock, or email james@atlanticreach.co.uk</li>
-   </ul></aside></div>}
+   </ul></aside>
+  </div></div>}
    {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')}/>}
       {view==='pending'&&<PendingPanel onMsg={setMsg}/>}
    {view==='queue'&&<QueuePanel onMsg={setMsg}/>}
