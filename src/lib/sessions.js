@@ -116,3 +116,14 @@ export function sessionFreshness(asOfIso, now=new Date(), staleAfterMs=3*60*1000
   if(ageMs>staleAfterMs) return {kind:'stale', ageMs, stale:true};
   return {kind:'fresh', ageMs, stale:false};
 }
+
+/** Compact upcoming list: show first `limit` unless expanded. */
+export function visibleUpcoming(upcoming, {limit=3, expanded=false}={}){
+  const list=Array.isArray(upcoming)?upcoming:[];
+  const lim=Math.max(0, Number(limit)||0);
+  if(expanded || list.length<=lim){
+    return {shown:list, hidden:0, truncated:false, total:list.length};
+  }
+  return {shown:list.slice(0,lim), hidden:list.length-lim, truncated:true, total:list.length};
+}
+

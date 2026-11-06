@@ -2,11 +2,12 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {sb} from '../lib.js';
 import {
   capacityLabel,formatAsOf,formatSessionRange,partitionSessions,reconcileSessions,
-  PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl
+  PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {IconClock,IconExternalLink} from './Icons.jsx';
 
 const POLL_MS=45_000;
+const UPCOMING_PREVIEW=3;
 
 function SessionRow({s}){
   const cap=capacityLabel(s.attendee_count, s.attendee_limit);
@@ -35,6 +36,7 @@ export default function SessionsPanel(){
   const[asOf,setAsOf]=useState(null);
   const[scheduleUrl,setScheduleUrl]=useState(PUBLIC_SCHEDULE_URL);
   const[nowTick,setNowTick]=useState(()=>new Date());
+  const[expanded,setExpanded]=useState(false);
   const bust=useRef(0);
 
   const load=useCallback(async({manual=false}={})=>{
@@ -80,6 +82,7 @@ export default function SessionsPanel(){
   useEffect(()=>{const t=setInterval(()=>setNowTick(new Date()),15_000); return()=>clearInterval(t);},[]);
 
   const {current,upcoming}=partitionSessions(rows, nowTick);
+  const preview=visibleUpcoming(upcoming,{limit:UPCOMING_PREVIEW,expanded});
   const fresh=sessionFreshness(asOf, nowTick);
   const empty=!loading && !err && current.length===0 && upcoming.length===0;
   const showingStale=!!err && rows.length>0;
@@ -98,23 +101,35 @@ export default function SessionsPanel(){
       {showingStale&&<> · showing last good list (refresh failed)</>}
     </div>
 
-    {loading&&!rows.length&&!err&&<div className="muted sess-empty">Loading live sessions…</div>}
-    {err&&<div className="err md-err" role="alert">
-      {errKind==='missing_token'
-        ? 'Bookwhen API token is not set on the server — live sessions cannot load. Ask James to set BOOKWHEN_API_TOKEN on Supabase.'
-        : err}
-      {errKind==='network'&&rows.length===0&&' This is a connection/API error, not “no sessions”.'}
-    </div>}
-    {empty&&<div className="muted sess-empty">No sessions on now or coming up (live empty — not an error).</div>}
+    <div className="sess-scroll">
+      {loading&&!rows.length&&!err&&<div className="muted sess-empty">Loading live sessions…</div>}
+      {err&&<div className="err md-err" role="alert">
+        {errKind==='missing_token'
+          ? 'Bookwhen API token is not set on the server — live sessions cannot load. Ask James to set BOOKWHEN_API_TOKEN on Supabase.'
+          : err}
+        {errKind==='network'&&rows.length===0&&' This is a connection/API error, not “no sessions”.'}
+      </div>}
+      {empty&&<div className="muted sess-empty">No sessions on now or coming up (live empty — not an error).</div>}
 
-    {current.length>0&&<>
-      <div className="sess-label">On now</div>
-      <ul className="sess-list">{current.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
-    </>}
-    {upcoming.length>0&&<>
-      <div className="sess-label">Coming up</div>
-      <ul className="sess-list">{upcoming.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
-    </>}
+      {current.length>0&&<>
+        <div className="sess-label">On now</div>
+        <ul className="sess-list">{current.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
+      </>}
+      {preview.shown.length>0&&<>
+        <div className="sess-label">Coming up</div>
+        <ul className="sess-list">{preview.shown.map(s=><SessionRow key={s.id} s={s}/>)}</ul>
+      </>}
+      {preview.truncated&&!expanded&&(
+        <button type="button" className="btn ghost sm sess-more" onClick={()=>setExpanded(true)}>
+          Show {preview.hidden} more upcoming
+        </button>
+      )}
+      {expanded&&preview.total>UPCOMING_PREVIEW&&(
+        <button type="button" className="btn ghost sm sess-more" onClick={()=>setExpanded(false)}>
+          Show fewer
+        </button>
+      )}
+    </div>
 
     <div className="sess-foot">
       <a className="btn ghost sm" href={scheduleUrl} target="_blank" rel="noopener noreferrer">

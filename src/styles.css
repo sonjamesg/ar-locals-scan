@@ -47,10 +47,12 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .btn.sm{padding:4px 10px;min-height:0;font-size:12px}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .btn:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
-.scan-layout{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:stretch}
+.scan-layout{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
 .scan-card,.panel,.help-panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;box-shadow:none}
-.scan-card{display:flex;flex-direction:column;min-height:100%;height:100%}
-.help-panel{height:100%;box-sizing:border-box}
+/* Scan card sizes to its own content — never stretched by a long Sessions list */
+.scan-card{display:flex;flex-direction:column;height:auto;min-height:280px;box-sizing:border-box}
+.help-panel{height:auto;box-sizing:border-box}
+/* Status fills the scan card only (equal-ish roomy idle), not the sessions column height */
 .scan-card>.status{flex:1 1 auto}
 .panel h2{margin:0 0 14px;font-size:22px;font-weight:700;color:var(--txt)}
 .panel code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--brand-soft);border:1px solid var(--line);padding:2px 8px;border-radius:6px;color:var(--brand)}
@@ -95,7 +97,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .fb-modal-compose{max-width:520px;max-height:min(90vh,720px)}
 .status{position:relative;overflow:hidden;border-radius:14px;padding:28px 24px;display:flex;align-items:center;gap:20px;min-height:0;margin-top:18px;background:#f4f9fa;border:1.5px solid #d3e2e7;animation:none;box-shadow:none}
 .status::before,.status::after,.corner,.reticle,.idle-icon{display:none!important}
-.status.idle{flex-direction:column;justify-content:center;text-align:center;gap:8px;color:var(--mut);min-height:160px}
+.status.idle{flex-direction:column;justify-content:flex-start;text-align:center;gap:8px;color:var(--mut);min-height:160px;padding-top:36px;padding-bottom:28px}
 .idle-t{font:700 22px var(--font);color:var(--txt);letter-spacing:0;display:flex;align-items:center;gap:8px;justify-content:center}
 .idle-t::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--brand);display:inline-block}
 .idle-t::after{content:none}
@@ -289,13 +291,14 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 
-.scan-side{display:flex;flex-direction:column;gap:14px;height:100%}
-.sess-panel{padding:16px 18px}
-.sess-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.scan-side{display:flex;flex-direction:column;gap:14px;height:auto;min-width:0}
+.sess-panel{padding:16px 18px;display:flex;flex-direction:column;max-height:min(58vh,520px);min-height:0}
+.sess-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px;flex:none}
 .sess-h{margin:0;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px;color:var(--txt)}
 .sess-h-ico{width:16px;height:16px;color:var(--brand)}
 .sess-sub{margin:4px 0 0;font-size:12px;line-height:1.35;max-width:36ch}
-.sess-status-line{font-size:11px;margin:0 0 8px}
+.sess-status-line{font-size:11px;margin:0 0 8px;flex:none}
+.sess-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:2px}
 .sess-label{font:700 11px var(--font);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:10px 0 6px}
 .sess-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .sess-item{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafcfd}
@@ -306,6 +309,11 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-cap{border-color:#b7e0c5;background:var(--ok-bg);color:var(--ok)}
 .sess-open{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;text-decoration:none}
 .sess-empty{padding:12px;border:1.5px dashed var(--line);border-radius:10px;text-align:center}
-.sess-foot{margin-top:12px;display:flex;justify-content:flex-end}
+.sess-more{margin-top:8px;width:100%;justify-content:center}
+.sess-foot{margin-top:10px;display:flex;justify-content:flex-end;flex:none}
 .sess-foot .btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
-@media(max-width:900px){.scan-side{height:auto}}
+@media(max-width:900px){
+  .scan-side{height:auto}
+  .sess-panel{max-height:none}
+  .sess-scroll{overflow:visible}
+}

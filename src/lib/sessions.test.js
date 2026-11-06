@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   classifySession,partitionSessions,reconcileSessions,capacityLabel,
   sessionOpenUrl,sessionLinkLabel,adminAttendanceUrl,publicEventUrl,isValidEventId,
-  sessionFreshness,PUBLIC_SCHEDULE_URL
+  sessionFreshness,visibleUpcoming,PUBLIC_SCHEDULE_URL
 } from './sessions.js';
 
 describe('sessions classify',()=>{
@@ -87,5 +87,25 @@ describe('sessions freshness',()=>{
     assert.equal(sessionFreshness('2026-11-06T14:04:00Z',now).stale,false);
     assert.equal(sessionFreshness('2026-11-06T14:00:00Z',now).stale,true);
     assert.equal(sessionFreshness(null,now).kind,'unknown');
+  });
+});
+
+describe('sessions compact upcoming',()=>{
+  const list=[{id:'1'},{id:'2'},{id:'3'},{id:'4'},{id:'5'}];
+  it('shows first 3 and reports hidden when collapsed',()=>{
+    const out=visibleUpcoming(list,{limit:3,expanded:false});
+    assert.deepEqual(out.shown.map(s=>s.id),['1','2','3']);
+    assert.equal(out.hidden,2);
+    assert.equal(out.truncated,true);
+  });
+  it('shows all when expanded',()=>{
+    const out=visibleUpcoming(list,{limit:3,expanded:true});
+    assert.equal(out.shown.length,5);
+    assert.equal(out.truncated,false);
+  });
+  it('does not truncate short lists',()=>{
+    const out=visibleUpcoming([{id:'a'}],{limit:3,expanded:false});
+    assert.equal(out.truncated,false);
+    assert.equal(out.hidden,0);
   });
 });
