@@ -1,6 +1,10 @@
 import {describe,it} from 'node:test';
 import assert from 'node:assert/strict';
-import {classifySession,partitionSessions,capacityLabel,sessionOpenUrl,sessionLinkLabel,PUBLIC_SCHEDULE_URL} from './sessions.js';
+import {
+  classifySession,partitionSessions,reconcileSessions,capacityLabel,
+  sessionOpenUrl,sessionLinkLabel,adminAttendanceUrl,publicEventUrl,isValidEventId,
+  sessionFreshness,PUBLIC_SCHEDULE_URL
+} from './sessions.js';
 
 describe('sessions classify',()=>{
   const now=new Date('2026-11-06T14:00:00Z');
@@ -20,15 +24,68 @@ describe('sessions classify',()=>{
     assert.deepEqual(current.map(s=>s.id),['a','b']);
     assert.deepEqual(upcoming.map(s=>s.id),['c']);
   });
+  it('time bucket transition: current becomes past after end',()=>{
+    const s={id:'ev-x-20261106130000',start_at:'2026-11-06T13:00:00Z',end_at:'2026-11-06T14:30:00Z'};
+    assert.equal(classifySession(s,new Date('2026-11-06T14:00:00Z')),'current');
+    assert.equal(classifySession(s,new Date('2026-11-06T14:30:00Z')),'past');
+  });
 });
 
-describe('sessions links',()=>{
-  it('uses honest schedule fallback until admin URL verified',()=>{
-    assert.equal(sessionOpenUrl({id:'ev-x'},{}),PUBLIC_SCHEDULE_URL);
-    assert.equal(sessionLinkLabel({}),'Open Bookwhen schedule');
+describe('sessions reconcile live schedule',()=>{
+  it('drops events no longer returned (early close / removed)',()=>{
+    const prev=[
+      {id:'ev-keep-20261106140000',start_at:'2026-11-06T14:00:00Z',end_at:'2026-11-06T15:30:00Z',title:'Keep'},
+      {id:'ev-gone-20261106140000',start_at:'2026-11-06T14:00:00Z',end_at:'2026-11-06T15:00:00Z',title:'Closed early'},
+    ];
+    const next=[
+      {id:'ev-keep-20261106140000',start_at:'2026-11-06T14:00:00Z',end_at:'2026-11-06T15:30:00Z',title:'Keep'},
+    ];
+    const out=reconcileSessions(prev,next);
+    assert.deepEqual(out.map(s=>s.id),['ev-keep-20261106140000']);
+  });
+  it('applies edited times from latest payload for same id',()=>{
+    const prev=[{id:'ev-edit-20261106140000',start_at:'2026-11-06T14:00:00Z',end_at:'2026-11-06T15:30:00Z'}];
+    const next=[{id:'ev-edit-20261106140000',start_at:'2026-11-06T14:00:00Z',end_at:'2026-11-06T15:00:00Z'}]; // ended early
+    const out=reconcileSessions(prev,next);
+    assert.equal(out[0].end_at,'2026-11-06T15:00:00Z');
+    assert.equal(classifySession(out[0],new Date('2026-11-06T15:05:00Z')),'past');
+  });
+});
+
+describe('sessions verified links',()=>{
+  it('validates event id shape',()=>{
+    assert.equal(isValidEventId('ev-srg2i-20261106140000'),true);
+    assert.equal(isValidEventId('ev-sw9x-20261107090000'),true);
+    assert.equal(isValidEventId('../evil'),false);
+    assert.equal(isValidEventId(''),false);
+  });
+  it('builds verified admin attendances URL from live id',()=>{
+    assert.equal(
+      adminAttendanceUrl('ev-srg2i-20261106140000'),
+      'https://atlanticreach.bookwhen.com/events/ev-srg2i-20261106140000/attendances'
+    );
+    assert.equal(
+      publicEventUrl('ev-srg2i-20261106140000'),
+      'https://bookwhen.com/atlanticreach/e/ev-srg2i-20261106140000'
+    );
+  });
+  it('Open register uses live id — never a stale hardcoded slug',()=>{
+    const s={id:'ev-sw9x-20261107090000'};
+    assert.equal(sessionOpenUrl(s),adminAttendanceUrl(s.id));
+    assert.equal(sessionLinkLabel(s),'Open register');
+    assert.equal(sessionOpenUrl({id:'bad'}),PUBLIC_SCHEDULE_URL);
   });
   it('capacity label',()=>{
     assert.equal(capacityLabel(3,10),'3/10');
     assert.equal(capacityLabel(3,null),'3 booked');
+  });
+});
+
+describe('sessions freshness',()=>{
+  it('marks stale after threshold',()=>{
+    const now=new Date('2026-11-06T14:05:00Z');
+    assert.equal(sessionFreshness('2026-11-06T14:04:00Z',now).stale,false);
+    assert.equal(sessionFreshness('2026-11-06T14:00:00Z',now).stale,true);
+    assert.equal(sessionFreshness(null,now).kind,'unknown');
   });
 });

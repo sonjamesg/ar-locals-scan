@@ -5,10 +5,10 @@ const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-const SCHEDULE_URL = "https://bookwhen.com/atlanticreach";
+const SCHEDULE_URL = "https://atlanticreach.bookwhen.com/schedules/utxdsfe4hutv";
 const TZ = "Europe/London";
 const PAGE = 20;
-const CACHE_MS = 45_000;
+const CACHE_MS = 20_000;
 
 type CacheEntry = { at: number; body: unknown };
 let cache: CacheEntry | null = null;
@@ -71,12 +71,20 @@ Deno.serve(async (req) => {
       schedule_url: SCHEDULE_URL,
       as_of: new Date().toISOString(),
       admin_deep_link: null,
-      admin_deep_link_note: "Admin session/attendee URL not verified yet — use schedule link.",
+      admin_deep_link_note: "Open Register uses /events/{id}/attendances from the live event id when data loads.",
     }, { status: 503, headers: cors });
   }
 
-  if (cache && Date.now() - cache.at < CACHE_MS) {
-    return Response.json(cache.body, { headers: { ...cors, "Cache-Control": "public, max-age=30" } });
+  let manual = false;
+  try {
+    if (req.method === "POST") {
+      const body = await req.json().catch(() => ({}));
+      manual = !!(body && (body.manual || body.bust));
+    }
+  } catch { /* ignore */ }
+
+  if (!manual && cache && Date.now() - cache.at < CACHE_MS) {
+    return Response.json(cache.body, { headers: { ...cors, "Cache-Control": "public, max-age=15" } });
   }
 
   try {
@@ -104,7 +112,7 @@ Deno.serve(async (req) => {
           schedule_url: SCHEDULE_URL,
           as_of: now.toISOString(),
           admin_deep_link: null,
-          admin_deep_link_note: "Admin session/attendee URL not verified yet — use schedule link.",
+          admin_deep_link_note: "Open Register uses /events/{id}/attendances from the live event id when data loads.",
         }, { status: 502, headers: cors });
       }
       const j = await r.json();
@@ -132,15 +140,19 @@ Deno.serve(async (req) => {
       schedule_url: SCHEDULE_URL,
       as_of: now.toISOString(),
       timezone: TZ,
-      // Deep link for register/attendance not confirmed — parent browser QA will supply exact admin URL.
+      // Client builds per-event register URLs from live event ids:
+      // https://atlanticreach.bookwhen.com/events/{event_id}/attendances
+      admin_attendance_path_template: "/events/{event_id}/attendances",
+      admin_host: "https://atlanticreach.bookwhen.com",
+      public_event_path_template: "/e/{event_id}",
       admin_deep_link: null as string | null,
       admin_deep_link_note:
-        "Exact admin session/attendee URL not verified yet. Open the public schedule, or use Open in Bookwhen from the header for staff admin.",
+        "Open Register uses https://atlanticreach.bookwhen.com/events/{id}/attendances from the live event id.",
       disclaimer:
-        "Session list is venue schedule only — it does not show whether the scanned member is booked onto a class.",
+        "Session list is venue schedule only — it does not show whether the scanned member is booked onto a class. Bookwhen public Events API has no cancelled flag; early closes/cancellations appear as the event vanishing or end_at changing on the next fetch.",
     };
     cache = { at: Date.now(), body };
-    return Response.json(body, { headers: { ...cors, "Cache-Control": "public, max-age=30" } });
+    return Response.json(body, { headers: { ...cors, "Cache-Control": "public, max-age=15" } });
   } catch (e) {
     return Response.json({
       error: "proxy_failed",
@@ -150,7 +162,7 @@ Deno.serve(async (req) => {
       schedule_url: SCHEDULE_URL,
       as_of: new Date().toISOString(),
       admin_deep_link: null,
-      admin_deep_link_note: "Admin session/attendee URL not verified yet — use schedule link.",
+      admin_deep_link_note: "Open Register uses /events/{id}/attendances from the live event id when data loads.",
     }, { status: 500, headers: cors });
   }
 });

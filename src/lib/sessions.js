@@ -1,6 +1,14 @@
-/** Bookwhen desk sessions helpers (Europe/London display). */
+/** Bookwhen desk sessions helpers (Europe/London). Live API rows only — never a fixed timetable. */
 export const SESSION_TZ='Europe/London';
-export const PUBLIC_SCHEDULE_URL='https://bookwhen.com/atlanticreach';
+/** Verified public schedule (unsigned marketing redirects elsewhere; this is the staff schedule host path). */
+export const PUBLIC_SCHEDULE_URL='https://atlanticreach.bookwhen.com/schedules/utxdsfe4hutv';
+export const ADMIN_HOST='https://atlanticreach.bookwhen.com';
+export const PUBLIC_EVENT_HOST='https://bookwhen.com/atlanticreach';
+
+/** Bookwhen event ids look like ev-srg2i-20261106140000 */
+export function isValidEventId(id){
+  return typeof id==='string' && /^ev-[a-z0-9]+-\d{14}$/i.test(id.trim());
+}
 
 export function classifySession(session, now=new Date()){
   const s=Date.parse(session?.start_at||'');
@@ -24,6 +32,22 @@ export function partitionSessions(list, now=new Date()){
   return {current, upcoming};
 }
 
+/**
+ * Replace local list with the latest successful API payload.
+ * Events missing from the new payload disappear (early close / cancelled / removed).
+ * Edited times come from new start_at/end_at on the same id.
+ */
+export function reconcileSessions(prevList, nextList){
+  const next=Array.isArray(nextList)?nextList:[];
+  // Full replace keyed by current response — no merging stale rows
+  const byId=new Map();
+  for(const s of next){
+    if(!s?.id) continue;
+    byId.set(s.id,{...s});
+  }
+  return [...byId.values()];
+}
+
 export function formatSessionWhen(iso, opts={}){
   if(!iso) return '';
   const d=new Date(iso);
@@ -43,21 +67,52 @@ export function formatSessionRange(startAt, endAt){
   return `${a} – ${b}`;
 }
 
+export function formatAsOf(iso){
+  if(!iso) return '';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('en-GB',{timeZone:SESSION_TZ,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
 export function capacityLabel(count, limit){
   if(typeof count!=='number') return null;
   if(typeof limit==='number' && limit>0) return `${count}/${limit}`;
   return `${count} booked`;
 }
 
-/** Prefer verified admin deep link; otherwise honest public schedule. */
+/** Verified admin register/attendance URL from the live event id only. */
+export function adminAttendanceUrl(eventId){
+  if(!isValidEventId(eventId)) return null;
+  return `${ADMIN_HOST}/events/${encodeURIComponent(eventId.trim())}/attendances`;
+}
+
+/** Verified public event page from the live event id. */
+export function publicEventUrl(eventId){
+  if(!isValidEventId(eventId)) return null;
+  return `${PUBLIC_EVENT_HOST}/e/${encodeURIComponent(eventId.trim())}`;
+}
+
+/** Prefer verified per-event admin register link; else public event; else schedule. Never hardcode a stale slug. */
 export function sessionOpenUrl(session, meta={}){
-  if(meta.admin_deep_link && typeof meta.admin_deep_link==='string'){
-    // Placeholder for parent-supplied pattern; do not invent paths here.
-    return meta.admin_deep_link.replace('{id}', encodeURIComponent(session?.id||''));
-  }
+  const id=session?.id;
+  const admin=adminAttendanceUrl(id);
+  if(admin) return admin;
+  const pub=publicEventUrl(id);
+  if(pub) return pub;
   return meta.schedule_url || PUBLIC_SCHEDULE_URL;
 }
 
-export function sessionLinkLabel(meta={}){
-  return meta.admin_deep_link ? 'Open in Bookwhen admin' : 'Open Bookwhen schedule';
+export function sessionLinkLabel(session){
+  if(isValidEventId(session?.id)) return 'Open register';
+  return 'Open schedule';
+}
+
+/** Freshness: age of as_of vs now. */
+export function sessionFreshness(asOfIso, now=new Date(), staleAfterMs=3*60*1000){
+  if(!asOfIso) return {kind:'unknown', ageMs:null, stale:true};
+  const t=Date.parse(asOfIso);
+  if(Number.isNaN(t)) return {kind:'unknown', ageMs:null, stale:true};
+  const ageMs=now.getTime()-t;
+  if(ageMs>staleAfterMs) return {kind:'stale', ageMs, stale:true};
+  return {kind:'fresh', ageMs, stale:false};
 }
