@@ -12,7 +12,7 @@ export default function PinGate({children}){
  if(ok)return children;
  return <div className="pin-screen" role="dialog" aria-modal="true" aria-labelledby="pin-title"><div className={`pin-box ${err?'is-err':''}`}>
   <div className="pin-tag"><span className="pin-led"/>Staff access</div>
-  <img src={import.meta.env.BASE_URL+"ar-logo-white.png"} alt="Atlantic Reach" className="pin-logo" style={{background:'#386D7E',borderRadius:10,padding:'10px 14px'}}/>
+  <img src={import.meta.env.BASE_URL+"ar-logo-white.png"} alt="Atlantic Reach" className="pin-logo" style={{background:'#263241',borderRadius:10,padding:'10px 14px'}}/>
   <h1 id="pin-title">Locals Card Desk</h1><p>Enter your {N}-digit staff PIN to continue</p>
   <div className={`pin-digits ${err?'shake':''}`} onPaste={paste}>{d.map((v,i)=><input key={i} ref={el=>refs.current[i]=el} value={v} onChange={e=>set(i,e.target.value)} onKeyDown={e=>key(i,e)} onFocus={e=>e.target.select()} inputMode="numeric" type="password" maxLength={1} autoComplete="off" placeholder="" aria-label={`PIN digit ${i+1}`} className={`pin-digit ${err?'bad':''}`}/>)}</div>
   <div className="pin-dots" aria-hidden="true">{d.map((v,i)=><span key={i} className={v?'on':''}/>)}</div>
