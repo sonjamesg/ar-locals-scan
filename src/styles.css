@@ -210,10 +210,10 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;ba
 .am-filter{display:flex;gap:8px;margin:10px 0}.am-stat.bad b{color:#ff3b5c}
 .new-badge{background:#1f7a3a;color:#fff;font-weight:700;padding:2px 8px;border-radius:999px;font-size:11px;margin:0 6px;align-self:center}
 
-.am-stats{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.am-stat{padding:8px 10px;min-width:0}.am-stat b{font-size:19px}.am-stat span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.am-stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.am-stat{padding:8px 10px;min-width:0}.am-stat b{font-size:19px}.am-stat span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .batch{flex-wrap:nowrap;gap:10px}.batch label{flex-shrink:1;min-width:0}.batch select,.batch input{min-width:0;height:40px}.batch .btn.lg{height:40px;white-space:nowrap;flex-shrink:0}
 .am-filter{flex-wrap:nowrap;overflow-x:auto;gap:6px}.am-filter .btn{white-space:nowrap;flex-shrink:0;padding:6px 12px}
-@media(max-width:640px){.am-stats{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}.am-stat{padding:6px}.am-stat b{font-size:15px}.am-stat span{font-size:9px}}
+@media(max-width:640px){.am-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.am-stat{padding:6px}.am-stat b{font-size:15px}.am-stat span{font-size:9px}}
 /* Scan desk polish */
 body::before{background-image:linear-gradient(#00e5c008 1px,transparent 1px),linear-gradient(90deg,#00e5c008 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 40%,#000 15%,transparent 70%)}
 .main{position:relative;z-index:1}
@@ -251,3 +251,5 @@ body::before{background-image:linear-gradient(#00e5c01c 1px,transparent 1px),lin
 @media(prefers-reduced-motion:no-preference){.reticle{animation:ret 8s linear infinite}@keyframes ret{to{transform:translate(-50%,-50%) rotate(360deg)}}}
 .contact-admin{margin-top:8px;padding:8px 12px;border:1px solid #00e5c066;border-radius:10px;background:#00e5c012;color:var(--cy);font:700 13px var(--mono);letter-spacing:.06em;box-shadow:0 0 14px #00e5c022}
 .contact-admin.inline{display:inline;margin:0;padding:1px 8px;font-size:11px}
+
+.am-sep{width:1px;align-self:stretch;background:#00e5c044;margin:0 4px;flex-shrink:0}
