@@ -1,18 +1,16 @@
 import {left,fmt} from '../lib.js';
 import {formatVisitWhen} from '../lib/visits.js';
 import {statusMeta} from '../lib/statusCard.js';
-import {IconAlert,IconBan,IconCardLink,IconCheck,IconSearch} from './Icons.jsx';
+import {IconAlert,IconBan,IconBarcode,IconCardLink,IconCheck,IconSearch} from './Icons.jsx';
 
 const ICONS={valid:IconCheck,expired:IconAlert,lost:IconBan,unknown:IconCardLink,idle:IconSearch};
 
 export default function StatusCard({res}){
   if(!res){
     return <section className="status idle" aria-live="polite">
-      <div className="st-icon" aria-hidden="true"><IconSearch/></div>
-      <div className="st-body">
-        <div className="st-label">Ready to scan</div>
-        <div className="st-meta">Point the barcode scanner at a Locals card. Membership details will appear here.</div>
-      </div>
+      <div className="st-idle-icon" aria-hidden="true"><IconBarcode/></div>
+      <div className="st-label">Ready to scan</div>
+      <div className="st-meta">Point the barcode scanner at a Locals card. Membership details will appear here.</div>
     </section>;
   }
   const meta=statusMeta(res.status);

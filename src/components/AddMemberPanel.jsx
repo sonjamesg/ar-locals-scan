@@ -32,7 +32,7 @@ export default function AddMemberPanel({onMsg}){
     <label className="span4">Email<output className="until am-email">{email}</output></label>
     <label className="span4">Card barcode<input value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off" required/></label>
     <label>Card issue date<input type="date" value={f.issued_on} max={today()} onChange={set('issued_on')} required/></label>
-    <label>Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'—'}</output></label>
+    <label title="Uses the Bookwhen renewal date when one is known">Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'—'}</output></label>
     <div className="add-acts"><button type="button" className="btn ghost" onClick={reset}>Clear</button><button className="btn primary" disabled={!cardOk||!f.first_name.trim()||!f.last_name.trim()}>Done</button></div></form>}
   </>}
   {ask&&<Confirm title="Confirm details?" busy={busy} onNo={()=>setAsk(null)} onYes={save}>

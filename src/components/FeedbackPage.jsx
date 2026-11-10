@@ -69,7 +69,7 @@ export default function FeedbackPage({onBack,onWrite}){
   return <section className="panel fb-page">
     <div className="fb-page-head">
       <div>
-        <button type="button" className="btn ghost fb-back" onClick={onBack}><IconArrowLeft/><span>Back</span></button>
+        <button type="button" className="btn-back fb-back" onClick={onBack}><IconArrowLeft/><span>Back</span></button>
         <h2 className="fb-page-title" tabIndex={-1} ref={heading}><IconFeedback className="fb-page-ico"/>Feedback <span className="fb-page-count">{total?`(${total})`:''}</span></h2>
         <p className="muted fb-page-sub">Every staff note from reception, newest first. Edit or delete as needed.</p>
       </div>

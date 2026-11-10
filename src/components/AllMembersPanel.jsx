@@ -1,10 +1,10 @@
-import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,BwChips,ago} from './Members.jsx';
+import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,NewBadge,StatusChip,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,ago} from './Members.jsx';
 import {isNew,isCancelled,isLinked,cardCounts,filterMembers} from '../lib/memberFilters.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
  if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;if(!h.bookwhen_customer_id&&!h.bw_checked_at)return <span className="muted">No CustomerID</span>;
  if(!h.bw_checked_at)return <span className="muted">Not checked</span>;
- return <BwChips h={h}/>;}
+ return <StatusChip h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const[cf,setCf]=useState('all');const ctl=useRef({});
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
@@ -61,6 +61,6 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   </div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
-   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit hit-grid" onClick={()=>setSel(h)}><MemberRowCells h={h} newBadge={isNew(h)?<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null} status={<Status h={h}/>}/></button><OpenBtn h={h}/></li>)}
+   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit hit-grid" onClick={()=>setSel(h)}><MemberRowCells h={h} newBadge={<NewBadge h={h}/>} status={<Status h={h}/>}/></button><OpenBtn h={h}/></li>)}
    {shown.length>300&&<li className="muted">Showing 300 of {shown.length} — filter to narrow</li>}</ul>
  </section>;}

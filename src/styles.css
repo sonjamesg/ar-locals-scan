@@ -338,27 +338,41 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-name-btn:hover{border-color:var(--brand)}
 .sess-name-btn:disabled{opacity:.5;cursor:default}
 
-/* Aligned member list rows (All members + Search Users) */
-.hit.hit-grid{display:grid;grid-template-columns:minmax(0,1fr) 118px 56px 408px;align-items:center;gap:12px}
+/* Aligned member list rows (All members + Search Users) v2: name | NEW | right: status · card · renewal */
+.hit.hit-grid{display:grid;grid-template-columns:minmax(0,360px) 60px minmax(0,1fr);align-items:center;gap:12px}
 .hit-grid .hit-info{min-width:0}
 .hit-grid .hit-name-row{flex-wrap:nowrap;min-width:0}
 .hit-grid .hit-name,.hit-grid .hit-email{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hit-col{display:flex;align-items:center;min-width:0}
-.hit-col-card{justify-content:flex-start}
-.hit-col-new{justify-content:center}
+.hit-col-new{justify-content:flex-start}
 .hit-col-new .new-badge{margin:0}
-.hit-col-status{justify-content:flex-end;text-align:right}
-.hit-col-status .am-chips{display:grid;grid-template-columns:140px 84px 96px 70px;gap:6px;align-items:center;justify-items:end}
-.amc-slot{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:flex-end;min-width:0}
-.amc-ago{font-size:12px;color:var(--mut);white-space:nowrap}
-.hit-grid .amc{white-space:nowrap}
-@media(max-width:1180px){
-  .hit.hit-grid{grid-template-columns:minmax(0,1fr) 118px 56px;grid-template-areas:"info card new" "status status status";row-gap:8px}
-  .hit-grid>.hit-info{grid-area:info}.hit-grid>.hit-col-card{grid-area:card}.hit-grid>.hit-col-new{grid-area:new}
-  .hit-grid>.hit-col-status{grid-area:status;justify-content:flex-start;text-align:left}
-  .hit-col-status .am-chips{display:flex;flex-wrap:wrap;justify-items:start}
-  .hit-col-status .amc-slot:empty{display:none}
+.hit-col-right{display:grid;grid-template-columns:120px 116px 96px;gap:8px;justify-content:end;justify-items:end;align-items:center;text-align:right}
+.hit-slot{display:inline-flex;align-items:center;justify-content:flex-end;min-width:0}
+.hit-grid .amc,.hit-grid .card-link-badge{white-space:nowrap}
+@media(max-width:1100px){
+  .hit.hit-grid{grid-template-columns:minmax(0,1fr) 60px;grid-template-areas:"info new" "right right";row-gap:8px}
+  .hit-grid>.hit-info{grid-area:info}.hit-grid>.hit-col-new{grid-area:new}
+  .hit-grid>.hit-col-right{grid-area:right;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px}
+  .hit-col-right .hit-slot:empty{display:none}
 }
-@media(max-width:640px){
-  .hit.hit-grid{grid-template-columns:118px 56px minmax(0,1fr);grid-template-areas:"info info info" "card new ." "status status status"}
-}
+
+/* Member detail: card number */
+.md-card-no{display:flex;align-items:baseline;gap:10px;margin-top:8px}
+.md-card-label{font:700 11px var(--font);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.md-card-val{font:700 17px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--txt);background:#fff;border:1.5px solid var(--line-strong);border-radius:8px;padding:3px 10px;letter-spacing:.04em}
+.md-card-none{font:600 14px var(--font);color:#8a5a00;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:8px;padding:3px 10px}
+
+/* Back buttons: solid navy, clearly visible */
+.btn-back{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 18px;border-radius:10px;border:2px solid var(--brand);background:var(--brand);color:#fff;font:700 15px var(--font);letter-spacing:0;text-transform:none;cursor:pointer;box-shadow:0 1px 2px rgba(38,50,65,.18)}
+.btn-back svg{width:18px;height:18px}
+.btn-back:hover{background:var(--brand-dark);border-color:var(--brand-dark);color:#fff}
+.btn-back:focus-visible{outline:3px solid #7fa6c9;outline-offset:2px}
+.sel-h .btn-back{font-size:15px}
+
+/* Idle scan panel: centred empty state */
+.status.idle{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:34px 24px 32px;background:#fbfcfd;border:1.5px dashed #c7d6de}
+.st-idle-icon{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand);margin-bottom:8px;animation:st-idle-pulse 2.6s ease-in-out infinite}
+.st-idle-icon svg{width:32px;height:32px}
+.status.idle .st-label{font-size:22px;color:var(--txt)}
+.status.idle .st-meta{margin-top:2px;max-width:40ch;font-size:14px;line-height:1.45;color:var(--mut)}
+@keyframes st-idle-pulse{0%,100%{box-shadow:0 0 0 0 rgba(38,50,65,.14)}50%{box-shadow:0 0 0 10px rgba(38,50,65,0)}}

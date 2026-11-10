@@ -1,7 +1,7 @@
 import VisitStats from './VisitStats.jsx';
 import {useEffect,useState} from 'react';import {sb} from '../lib.js';
-import {IconSearch} from './Icons.jsx';
-import {cardLinkStatus} from '../lib/memberFilters.js';
+import {IconSearch,IconArrowLeft} from './Icons.jsx';
+import {cardLinkStatus,isNew} from '../lib/memberFilters.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
 export const nameOf=h=>{const n=[h.first_name,h.last_name].filter(x=>!ph(x)).join(' ');return n||null;};
@@ -13,30 +13,32 @@ export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)re
  {h.bookwhen_customer_id&&<a className="btn primary bw-btn" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships ↗</a>}</div>;}
 export const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
 export function CardLinkBadge({h}){const s=cardLinkStatus(h);return <span className={'card-link-badge '+(s.linked?'card-linked':'card-unlinked')} title={s.linked?'Has an active Locals card barcode':'No usable Locals card linked yet'}>{s.label}</span>;}
-/** List chips: membership status only — LCL ids stay on member detail, not crowded list rows. */
-/** List chips: membership status only — LCL ids stay on member detail, not crowded list rows.
- * Fixed slots (flag · status · renews · checked) so columns line up across rows. */
-export function BwChips({h}){const slot=(k,c)=><span className={'amc-slot amc-slot-'+k}>{c}</span>;
- const cancelled=!!h.cancelled_at,pend=!!h.pending_card&&!cancelled,checked=!!h.bw_checked_at;
- const flag=cancelled?<span className="amc amc-st bw-cancel" title={'Cancelled '+new Date(h.cancelled_at).toLocaleDateString('en-GB')}><i/>Cancelled</span>:pend?<>{<span className="amc amc-pend">PENDING CARD</span>}{!checked&&<span className="amc new-badge" title="New member">NEW</span>}</>:null;
- if(!checked&&!flag)return null;
- const live=checked&&!cancelled;const d=live&&h.bw_renews_at&&new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
- return <span className="am-chips" title={checked?'Checked '+ago(h.bw_checked_at):undefined}>
-  {slot('flag',flag)}
-  {slot('status',live?<span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><i/>{h.bw_status||'?'}</span>:null)}
-  {slot('renew',d?<span className="amc" title="Renews">↻ {d}</span>:null)}
-  {slot('ago',live?<span className="amc-ago">{ago(h.bw_checked_at)}</span>:null)}
- </span>;}
+/** Row status chip: Cancelled > Pending card (unchecked) > Bookwhen status. LCL ids stay on member detail. */
+export function StatusChip({h}){
+ if(h.cancelled_at)return <span className="amc amc-st bw-cancel" title={'Cancelled '+new Date(h.cancelled_at).toLocaleDateString('en-GB')}><i/>Cancelled</span>;
+ if(h.bw_checked_at)return <span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')} title={'Checked '+ago(h.bw_checked_at)}><i/>{h.bw_status||'?'}</span>;
+ if(h.pending_card)return <span className="amc amc-pend">PENDING CARD</span>;
+ return null;}
+/** Bookwhen renewal date chip (no trailing last-checked date in rows). */
+export function RenewChip({h}){if(!h.bw_checked_at||h.cancelled_at||!h.bw_renews_at)return null;
+ const d=new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+ return <span className="amc amc-renew" title="Renews (Bookwhen)">↻ {d}</span>;}
+/** Compact chips for simple lists (e.g. Pending cards). */
+export function BwChips({h}){const s=StatusChip({h}),r=RenewChip({h});if(!s&&!r)return null;return <span className="am-chips">{s}{r}</span>;}
 export function MemberInfo({h,badge=true}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
  <div className="hit-name-row"><span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
  {n&&h.email&&<span className="hit-email" title={h.email}>{h.email}</span>}
  <span className="hit-meta">{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
-/** Aligned list row: name | card | NEW | status (right). Empty cells keep columns from shifting. */
+/** Aligned list row: name | NEW | (right) status · card · renewal. Empty cells keep columns from shifting. */
 export function MemberRowCells({h,newBadge=null,status}){return <>
  <MemberInfo h={h} badge={false}/>
- <span className="hit-col hit-col-card"><CardLinkBadge h={h}/></span>
  <span className="hit-col hit-col-new">{newBadge}</span>
- <span className="hit-col hit-col-status">{status}</span></>;}
+ <span className="hit-col hit-col-right">
+  <span className="hit-slot hit-slot-status">{status===undefined?<StatusChip h={h}/>:status}</span>
+  <span className="hit-slot hit-slot-card"><CardLinkBadge h={h}/></span>
+  <span className="hit-slot hit-slot-renew"><RenewChip h={h}/></span>
+ </span></>;}
+export const NewBadge=({h})=>isNew(h)?<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null;
 export function Confirm({title,children,onYes,onNo,busy}){return <div className="modal-bg"><div className="modal" role="dialog">
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
 export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
@@ -57,7 +59,7 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',empt
   {err&&<div className="err md-err" role="alert">Search failed — {err}</div>}
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {empty&&<li className="muted">{emptyText}</li>}
-   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit hit-grid" onClick={()=>onPick(h)}><MemberRowCells h={h} status={<BwChips h={h}/>}/></button><OpenBtn h={h}/></li>)}</ul>
+   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit hit-grid" onClick={()=>onPick(h)}><MemberRowCells h={h} newBadge={<NewBadge h={h}/>}/></button><OpenBtn h={h}/></li>)}</ul>
   {empty&&emptyGuide&&<div className="not-found-guide">{emptyGuide}</div>}
  </div>;}
 export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
@@ -65,10 +67,11 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
  const editable=h.id&&h.src!=='Bookwhen';const dirty=editable&&(f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim());
  async function save(){if(!dirty){setSt('✓ No changes');return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
   if(error)return setSt('Error: '+error.message);setSt('✓ Saved');onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
- return <div className="selected"><div className="sel-h"><button className="sel-x sel-back" onClick={onClear} title="Back to results">← Back</button><span>Member details</span></div>
+ return <div className="selected"><div className="sel-h"><button type="button" className="btn-back sel-back" onClick={onClear} title="Back to results"><IconArrowLeft/><span>Back</span></button><span>Member details</span></div>
  {h.cancelled_at&&<div className="md-cancel">Membership cancelled on {new Date(h.cancelled_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} — do not issue a card.</div>}<div className="md-head"><div className="md-avatar">{(nameOf(h)||h.email||'?').split(/[\s@.]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join('')}</div>
   <div className="md-id"><div className="md-name">{nameOf(h)||(h.email||'(no name)').split('@')[0]}</div>{h.email&&<div className="md-email">{h.email}</div>}
-   <div className="md-tags">{h.card_barcode&&<span className="chip">Card {h.card_barcode}</span>}{h.membership_ends_at&&<span className="chip">Ends {h.membership_ends_at}</span>}{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}{h.pending_card&&!h.cancelled_at&&<span className="chip chip-pend">⏳ Card pending</span>}{h.cancelled_at&&<span className="chip chip-cancel">✕ Cancelled {new Date(h.cancelled_at).toLocaleDateString('en-GB')}</span>}</div></div></div>
+   <div className="md-card-no"><span className="md-card-label">Card number</span>{h.card_barcode?<span className="md-card-val">{h.card_barcode}</span>:<span className="md-card-none">No card linked</span>}</div>
+   <div className="md-tags">{h.membership_ends_at&&<span className="chip">Ends {h.membership_ends_at}</span>}{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}{h.pending_card&&!h.cancelled_at&&<span className="chip chip-pend">⏳ Card pending</span>}{h.cancelled_at&&<span className="chip chip-cancel">✕ Cancelled {new Date(h.cancelled_at).toLocaleDateString('en-GB')}</span>}</div></div></div>
  <div className="md-panel"><div className="md-label">Bookwhen membership</div>
   <CheckUser h={h} onUpdate={onUpdate} actions={<OpenBtn h={h}/>}/></div>
  {editable&&<form className="name-edit" onSubmit={e=>{e.preventDefault();save();}}>

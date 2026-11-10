@@ -23,24 +23,42 @@ describe('list row card badge',()=>{
   });
 });
 
-describe('aligned member list rows',()=>{
+describe('aligned member list rows v2',()=>{
   const all=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../components/AllMembersPanel.jsx'),'utf8');
   const css=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../styles.css'),'utf8');
-  it('All members and Search Users use fixed column cells',()=>{
-    assert.match(members,/export function MemberRowCells/);
-    assert.match(members,/hit-col-card/);
-    assert.match(members,/hit-col-new/);
-    assert.match(members,/hit-col-status/);
+  it('name | NEW | right group (status, card, renewal) in that order',()=>{
+    const cells=members.slice(members.indexOf('export function MemberRowCells'));
+    const iNew=cells.indexOf('hit-col-new'),iS=cells.indexOf('hit-slot-status'),iC=cells.indexOf('hit-slot-card'),iR=cells.indexOf('hit-slot-renew');
+    assert.ok(iNew>0&&iNew<iS&&iS<iC&&iC<iR);
     assert.match(members,/className="hit hit-grid"/);
     assert.match(all,/className="hit hit-grid"/);
-    assert.match(all,/MemberRowCells/);
+    assert.match(all,/NewBadge/);
   });
-  it('BwChips emits fixed slots so status/renew/checked align',()=>{
-    for(const k of ['flag','status','renew','ago']) assert.match(members,new RegExp("slot\\('"+k+"'"));
+  it('no trailing last-checked date in rows; single NEW',()=>{
+    const chips=members.slice(members.indexOf('export function StatusChip'),members.indexOf('export function MemberInfo'));
+    assert.doesNotMatch(chips,/amc-ago/);
+    assert.doesNotMatch(chips,/>NEW</);
   });
-  it('grid columns fixed and names ellipsis',()=>{
-    assert.match(css,/\.hit\.hit-grid\{display:grid;grid-template-columns:minmax\(0,1fr\) 118px 56px 408px/);
+  it('fixed right columns and ellipsis names',()=>{
+    assert.match(css,/\.hit\.hit-grid\{display:grid;grid-template-columns:minmax\(0,360px\) 60px minmax\(0,1fr\)/);
+    assert.match(css,/\.hit-col-right\{display:grid;grid-template-columns:120px 116px 96px/);
     assert.match(css,/text-overflow:ellipsis/);
-    assert.match(css,/\.hit-col-status \.am-chips\{display:grid/);
+  });
+});
+
+describe('member detail card number + back button',()=>{
+  const css=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../styles.css'),'utf8');
+  const fb=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../components/FeedbackPage.jsx'),'utf8');
+  it('shows labelled Card number or No card linked',()=>{
+    const sel=members.slice(members.indexOf('export function Selected'));
+    assert.match(sel,/Card number/);
+    assert.match(sel,/No card linked/);
+    assert.match(sel,/h\.card_barcode\?/);
+  });
+  it('back buttons are solid navy with focus style',()=>{
+    assert.match(members,/className="btn-back sel-back"/);
+    assert.match(fb,/className="btn-back fb-back"/);
+    assert.match(css,/\.btn-back\{[^}]*background:var\(--brand\);color:#fff/);
+    assert.match(css,/\.btn-back:focus-visible/);
   });
 });
