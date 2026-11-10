@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,BwChips,ago} from './Members.jsx';
+import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,BwChips,ago} from './Members.jsx';
 import {isNew,isCancelled,isLinked,cardCounts,filterMembers} from '../lib/memberFilters.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
@@ -61,6 +61,6 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   </div>
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
-   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit" onClick={()=>setSel(h)}><MemberInfo h={h}/>{isNew(h)&&<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>}<Status h={h}/></button><OpenBtn h={h}/></li>)}
+   {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit hit-grid" onClick={()=>setSel(h)}><MemberRowCells h={h} newBadge={isNew(h)?<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null} status={<Status h={h}/>}/></button><OpenBtn h={h}/></li>)}
    {shown.length>300&&<li className="muted">Showing 300 of {shown.length} — filter to narrow</li>}</ul>
  </section>;}

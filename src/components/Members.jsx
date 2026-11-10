@@ -14,12 +14,29 @@ export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)re
 export const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
 export function CardLinkBadge({h}){const s=cardLinkStatus(h);return <span className={'card-link-badge '+(s.linked?'card-linked':'card-unlinked')} title={s.linked?'Has an active Locals card barcode':'No usable Locals card linked yet'}>{s.label}</span>;}
 /** List chips: membership status only — LCL ids stay on member detail, not crowded list rows. */
-export function BwChips({h}){const extra=<>{h.cancelled_at&&<span className="amc amc-st bw-cancel" title={'Cancelled '+new Date(h.cancelled_at).toLocaleDateString('en-GB')}><i/>Cancelled</span>}{h.pending_card&&!h.cancelled_at&&<span className="amc amc-pend">PENDING CARD</span>}</>;if(!h.bw_checked_at)return (h.cancelled_at||h.pending_card)?<span className="am-chips">{extra}{h.pending_card&&!h.cancelled_at&&<span className="amc new-badge" title="New member">NEW</span>}</span>:null;if(h.cancelled_at)return <span className="am-chips">{extra}</span>;const d=h.bw_renews_at&&new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
- return <span className="am-chips" title={'Checked '+ago(h.bw_checked_at)}>{extra}<span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><i/>{h.bw_status||'?'}</span>{d&&<span className="amc">↻ {d}</span>}<span className="amc-ago">{ago(h.bw_checked_at)}</span></span>;}
-export function MemberInfo({h}){const n=nameOf(h);return <div className="hit-info">
- <div className="hit-name-row"><span className="hit-name">{n||h.email||'(no name)'}</span><CardLinkBadge h={h}/></div>
- {n&&h.email&&<span className="hit-email">{h.email}</span>}
+/** List chips: membership status only — LCL ids stay on member detail, not crowded list rows.
+ * Fixed slots (flag · status · renews · checked) so columns line up across rows. */
+export function BwChips({h}){const slot=(k,c)=><span className={'amc-slot amc-slot-'+k}>{c}</span>;
+ const cancelled=!!h.cancelled_at,pend=!!h.pending_card&&!cancelled,checked=!!h.bw_checked_at;
+ const flag=cancelled?<span className="amc amc-st bw-cancel" title={'Cancelled '+new Date(h.cancelled_at).toLocaleDateString('en-GB')}><i/>Cancelled</span>:pend?<>{<span className="amc amc-pend">PENDING CARD</span>}{!checked&&<span className="amc new-badge" title="New member">NEW</span>}</>:null;
+ if(!checked&&!flag)return null;
+ const live=checked&&!cancelled;const d=live&&h.bw_renews_at&&new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+ return <span className="am-chips" title={checked?'Checked '+ago(h.bw_checked_at):undefined}>
+  {slot('flag',flag)}
+  {slot('status',live?<span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')}><i/>{h.bw_status||'?'}</span>:null)}
+  {slot('renew',d?<span className="amc" title="Renews">↻ {d}</span>:null)}
+  {slot('ago',live?<span className="amc-ago">{ago(h.bw_checked_at)}</span>:null)}
+ </span>;}
+export function MemberInfo({h,badge=true}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
+ <div className="hit-name-row"><span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
+ {n&&h.email&&<span className="hit-email" title={h.email}>{h.email}</span>}
  <span className="hit-meta">{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
+/** Aligned list row: name | card | NEW | status (right). Empty cells keep columns from shifting. */
+export function MemberRowCells({h,newBadge=null,status}){return <>
+ <MemberInfo h={h} badge={false}/>
+ <span className="hit-col hit-col-card"><CardLinkBadge h={h}/></span>
+ <span className="hit-col hit-col-new">{newBadge}</span>
+ <span className="hit-col hit-col-status">{status}</span></>;}
 export function Confirm({title,children,onYes,onNo,busy}){return <div className="modal-bg"><div className="modal" role="dialog">
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
 export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
@@ -40,7 +57,7 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',empt
   {err&&<div className="err md-err" role="alert">Search failed — {err}</div>}
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {empty&&<li className="muted">{emptyText}</li>}
-   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit" onClick={()=>onPick(h)}><MemberInfo h={h}/><BwChips h={h}/></button><OpenBtn h={h}/></li>)}</ul>
+   {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit hit-grid" onClick={()=>onPick(h)}><MemberRowCells h={h} status={<BwChips h={h}/>}/></button><OpenBtn h={h}/></li>)}</ul>
   {empty&&emptyGuide&&<div className="not-found-guide">{emptyGuide}</div>}
  </div>;}
 export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
