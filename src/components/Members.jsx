@@ -3,6 +3,8 @@ import {useEffect,useState} from 'react';import {sb} from '../lib.js';
 import {IconSearch,IconArrowLeft,IconUser,IconPencil,IconCalendar,IconSettings,IconExternalLink} from './Icons.jsx';
 import {renewalInfo} from '../lib/renewal.js';
 import {smartSearch} from '../lib/smartSearch.js';
+import {MIN_CHECK_EXT,extBlock} from '../lib/attendeeSync.js';
+import {ExtWarning} from './ExtensionHelp.jsx';
 import {cardLinkStatus,isNew,isUnchecked,isPurchaseUnchecked} from '../lib/memberFilters.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
@@ -140,6 +142,12 @@ export function MarkLost({h,onMarked}){const[ask,setAsk]=useState(false);const[b
   {ask&&<Confirm title="Confirm lost card" busy={busy} onNo={()=>setAsk(false)} onYes={mark}><p>Confirm this is a real Locals member with an active membership (check Bookwhen) who has genuinely lost their card:</p><MemberInfo h={h}/><p className="muted">They'll be added to the Lost cards list for a replacement.</p></Confirm>}</>;}
 
 if(typeof window!=='undefined'){window.addEventListener('message',e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY')window.__arExt=e.data.version;});window.postMessage({type:'AR_EXT_PING'},location.origin);}
+/** Re-ping the extension and wait briefly so a click right after page load still sees it. */
+export function detectExt(ms=700){if(window.__arExt)return Promise.resolve(window.__arExt);return new Promise(ok=>{let done=false;
+ const f=e=>{if(e.source===window&&e.data?.type==='AR_EXT_READY'){window.__arExt=e.data.version;fin();}};const fin=()=>{if(done)return;done=true;clearTimeout(t);window.removeEventListener('message',f);ok(window.__arExt||null);};
+ const t=setTimeout(fin,ms);window.addEventListener('message',f);window.postMessage({type:'AR_EXT_PING'},location.origin);});}
+/** Resolve to null when the extension can run `min`, else the block kind ('browser'|'missing'|'outdated'). */
+export async function extGate(min=MIN_CHECK_EXT){const v=await detectExt();return extBlock(v,min,navigator.userAgent);}
 export function extCheck(customerId,email){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
@@ -150,12 +158,12 @@ export function extAttendeeSync(events,onProgress){return new Promise(ok=>{const
   if(e.data.type==='AR_ATTENDEE_SYNC_PROGRESS'){onProgress&&onProgress(e.data.done,e.data.total);return;}
   if(e.data.type==='AR_ATTENDEE_SYNC_RESULT'){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_ATTENDEE_SYNC',reqId,events},location.origin);});}
-export function CheckUser({h,onUpdate,actions,intro}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
- useEffect(()=>{setR(null);setErr('');},[h.id]);
+export function CheckUser({h,onUpdate,actions,intro}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');const[block,setBlock]=useState(null);
+ useEffect(()=>{setR(null);setErr('');setBlock(null);},[h.id]);
  if(!h.id||h.src==='Bookwhen')return actions?<div className="md-actions">{actions}</div>:null;
  const v=r||(h.bw_checked_at?h:null);const em=(h.email||'').trim().toLowerCase();const can=!!h.bookwhen_customer_id||em.includes('@');
  async function run(){if(!can){setErr('No Bookwhen ID or email on this member');return;}setBusy(true);setErr('');
-  if(!window.__arExt){setBusy(false);if(h.bookwhen_customer_id){window.open(bwUrl(h.bookwhen_customer_id),'_blank','noopener');setErr('Extension not installed — opened Memberships to check manually');}else{window.open(bwSearchUrl(em),'_blank','noopener');setErr('Extension needed to check by email — opened Bookwhen search instead');}return;}
+  const b=await extGate(MIN_CHECK_EXT);setBlock(b);if(b){setBusy(false);return;}
   const res=await extCheck(h.bookwhen_customer_id||null,h.bookwhen_customer_id?null:em);
   if(res.error){setBusy(false);setErr(res.error);return;}
   if(!res.status&&!res.customer_id&&!h.bookwhen_customer_id){setBusy(false);setErr('Check returned nothing — member not found in Bookwhen');return;}
@@ -165,6 +173,7 @@ export function CheckUser({h,onUpdate,actions,intro}){const[r,setR]=useState(nul
  return <div className="bw-check">
   <p className="md-adv-note">{intro||"Re-check this member's Locals membership in Bookwhen (needs the extension). Status and renewal above update automatically."}</p>
   <div className="md-chips"><span className="md-checked">{v?.bw_checked_at?<>Last checked {ago(v.bw_checked_at)}</>:'Not checked yet'}</span></div>
+  {block&&<ExtWarning kind={block} action="Check user" min={MIN_CHECK_EXT} onClose={()=>setBlock(null)}>{h.bookwhen_customer_id&&<a className="ext-warn-manual" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Or check manually in Memberships ↗</a>}</ExtWarning>}
   {err&&<div className="err md-err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}<div className="contact-admin">⚠ contact admin - James</div></div>}
   <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':can?'Find in Bookwhen by email, check Locals and save CustomerID':'No Bookwhen ID or email — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>
  </div>;}

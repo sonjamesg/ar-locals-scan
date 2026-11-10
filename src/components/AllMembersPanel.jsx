@@ -1,15 +1,17 @@
-import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,NewBadge,StatusChip,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,ago} from './Members.jsx';
+import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,NewBadge,StatusChip,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,extGate,ago} from './Members.jsx';
+import {ExtWarning} from './ExtensionHelp.jsx';
+import {MIN_CHECK_EXT} from '../lib/attendeeSync.js';
 import {isNew,isCancelled,isLinked,cardCounts,filterMembers,isUnchecked,isActiveChecked} from '../lib/memberFilters.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
  if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;return <StatusChip h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
- const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const[cf,setCf]=useState('all');const ctl=useRef({});
+ const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const[cf,setCf]=useState('all');const ctl=useRef({});const[block,setBlock]=useState(null);
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
  const patch=(id,p)=>setRows(rs=>rs.map(r=>r.id===id?{...r,...p}:r));
  const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id||(r.email||'').includes('@'));const n=Math.max(1,Math.min(200,parseInt(size==='custom'?custom:size)||1));
  function pick(){const pool=mode==='unchecked'?eligible.filter(isUnchecked):eligible.slice(Math.max(0,from-1));return pool.slice(0,n);}
- async function start(){if(!window.__arExt)return onMsg({err:1,t:'Extension not detected — install it on this PC and hard-refresh'});
+ async function start(){const b=await extGate(MIN_CHECK_EXT);setBlock(b);if(b)return;
   const list=pick();if(!list.length)return onMsg({t:'Nothing to check in that range'});
   ctl.current={stop:false,pause:false};list.forEach(r=>patch(r.id,{_st:'queued',_err:null}));
   let ok=0,bad=0;setRun({i:0,total:list.length,ok,bad,paused:false});
@@ -48,6 +50,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    {busy&&<><button className="btn ghost lg" onClick={()=>{ctl.current.pause=!ctl.current.pause;setRun(r=>({...r,paused:ctl.current.pause}));}}>{run.paused?'Resume':'Pause'}</button>
     <button className="btn ghost lg" onClick={()=>{ctl.current.stop=true;}}>Stop</button></>}
   </div>
+  {block&&<ExtWarning kind={block} action={`Check ${n} (batch Check user)`} min={MIN_CHECK_EXT} onClose={()=>setBlock(null)}/>}
   {run&&<div className={'batch-prog'+(run.done?' done':'')}><div className="bp-top"><span className="bp-label">{run.done?(run.stopped?'Stopped':'Done'):run.paused?'Paused':'Checking…'}</span>
    <span className="bp-count">{run.i} / {run.total}</span><span className="bp-ok">✓ {run.ok}</span><span className="bp-bad">✕ {run.bad}</span></div>
    <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}

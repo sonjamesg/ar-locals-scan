@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
-import {EXT_LATEST,EXT_ZIP_PATH,CHROME_EXT_ADDRESS} from '../lib/attendeeSync.js';
-import {IconDownload,IconCopy,IconCheck} from './Icons.jsx';
+import {EXT_LATEST,EXT_ZIP_PATH,CHROME_EXT_ADDRESS,extWarnText} from '../lib/attendeeSync.js';
+import {IconDownload,IconCopy,IconCheck,IconAlert,IconX} from './Icons.jsx';
 
 export const extZipUrl=()=>((typeof import.meta!=='undefined'&&import.meta.env?.BASE_URL)||'./')+EXT_ZIP_PATH;
 const OPEN_EVT='ar-ext-help';
@@ -56,3 +56,14 @@ export function ExtFooter(){
     <ExtInstallModal open={open} onClose={()=>setOpen(false)}/>
   </span>;
 }
+
+/** Red, dismissible warning shown instead of running an extension-only action. kind: 'missing'|'outdated'|'browser'. */
+export function ExtWarning({kind,action,min,onClose,children}){const w=extWarnText(kind,action,min);
+  return <div className="ext-warn" role="alert">
+    <span className="ext-warn-ico"><IconAlert width={20} height={20}/></span>
+    <div className="ext-warn-body"><b>{w.title}</b><span>{w.body}</span>
+      <div className="ext-warn-acts">{kind!=='browser'&&<ExtDownloadLink className="btn primary sm" label={kind==='outdated'?`Download v${EXT_LATEST}`:'Download extension'} onClick={()=>openExtHelp()}/>}
+        <button type="button" className="ext-warn-link" onClick={openExtHelp}>How to install</button>{children}</div>
+      {kind!=='browser'&&<small className="ext-warn-note">Works in Google Chrome on a computer (not Safari, Firefox or phones).</small>}</div>
+    {onClose&&<button type="button" className="ext-warn-x" aria-label="Dismiss warning" title="Dismiss" onClick={onClose}><IconX width={16} height={16}/></button>}
+  </div>;}

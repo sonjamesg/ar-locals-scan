@@ -30,9 +30,7 @@ describe('extension download',()=>{
   });
   it('Re-sync shows friendly missing/outdated card with Download + How to install',()=>{
     assert.equal(extNeed(undefined),'missing'); assert.equal(extNeed('1.2.0'),'outdated'); assert.equal(extNeed('1.2.1'),null);
-    assert.match(sp,/Extension not installed/); assert.match(sp,/Extension needs updating/);
-    assert.match(sp,/<ExtDownloadLink[^>]*label="Download extension"/);
-    assert.match(sp,/onClick=\{openExtHelp\}>How to install/);
+    assert.match(sp,/<ExtWarning kind=\{extProblem\} action="Re-sync names" min=\{MIN_SYNC_EXT\}/);
     assert.doesNotMatch(sp,/load unpacked extension folder/);
   });
 });

@@ -592,3 +592,16 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
   .pend-slot:empty,.pend-slot:has(.pend-sec-off){display:none}
   .pend-slot .pend-sec{width:auto}
 }
+/* Red extension-needed warning */
+.ext-warn{position:relative;display:flex;gap:12px;align-items:flex-start;background:var(--bad-bg);border:1.5px solid #f0b4ae;border-left:5px solid var(--bad);border-radius:12px;padding:12px 40px 12px 14px;margin:10px 0;color:var(--txt);text-align:left}
+.ext-warn-ico{flex:none;display:inline-flex;width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;background:#fff;color:var(--bad)}
+.ext-warn-body{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:14px;line-height:1.4}
+.ext-warn-body b{color:var(--bad);font-size:15px}
+.ext-warn-acts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.ext-warn-acts .btn{margin:0;text-decoration:none}
+.ext-warn-link{border:0;background:none;padding:4px 2px;font:600 14px var(--font);color:var(--brand);text-decoration:underline;cursor:pointer}
+.ext-warn-manual{font-size:13px;color:var(--mut)}
+.ext-warn-note{color:var(--mut);font-size:12px}
+.ext-warn-x{position:absolute;top:8px;right:8px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--bad);border-radius:8px;cursor:pointer}
+.ext-warn-x:hover{background:#f7d5d1}
+.ext-warn-x:focus-visible,.ext-warn-link:focus-visible{outline:3px solid #9fb6cf;outline-offset:2px}

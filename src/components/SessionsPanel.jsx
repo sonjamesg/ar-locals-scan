@@ -5,10 +5,10 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed,EXT_LATEST
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed,extBlock,EXT_LATEST
 } from '../lib/attendeeSync.js';
-import {extAttendeeSync} from './Members.jsx';
-import {ExtDownloadLink,openExtHelp} from './ExtensionHelp.jsx';
+import {extAttendeeSync,detectExt} from './Members.jsx';
+import {ExtDownloadLink,openExtHelp,ExtWarning} from './ExtensionHelp.jsx';
 import {IconClock,IconExternalLink,IconUsers,IconUser} from './Icons.jsx';
 
 const POLL_MS=45_000;
@@ -150,7 +150,7 @@ export default function SessionsPanel({onSearchName}){
 
   async function reSyncAttendees(){
     setSyncErr('');
-    const need=extNeed(window.__arExt);
+    const need=extBlock(await detectExt(),MIN_SYNC_EXT,navigator.userAgent);
     setExtProblem(need);
     if(need) return;
     if(!allowlist.length){
@@ -202,16 +202,7 @@ export default function SessionsPanel({onSearchName}){
     </div>}
 
     <div className="sess-att-bar">
-      {extProblem&&<div className="ext-need" role="alert">
-        <div className="ext-need-txt"><b>{extProblem==='missing'?'Extension not installed':'Extension needs updating'}</b>
-          <span>{extProblem==='missing'
-            ?'Names come from Bookwhen through the Locals Card Chrome extension on this computer.'
-            :`This computer has v${window.__arExt}; names need v${MIN_SYNC_EXT} or newer.`}</span></div>
-        <div className="ext-need-acts">
-          <ExtDownloadLink className="btn primary sm" label="Download extension" onClick={()=>openExtHelp()}/>
-          <button type="button" className="btn ghost sm" onClick={openExtHelp}>How to install</button>
-        </div>
-      </div>}
+      {extProblem&&<ExtWarning kind={extProblem} action="Re-sync names" min={MIN_SYNC_EXT} onClose={()=>setExtProblem(null)}/>}
       {!extProblem&&window.__arExt&&!extVersionAtLeast(window.__arExt,EXT_LATEST)&&<div className="ext-soft">
         Faster extension v{EXT_LATEST} available (syncs 5 sessions at once). <ExtDownloadLink className="foot-fb ext-soft-link" label="Download" onClick={()=>openExtHelp()}/>
       </div>}

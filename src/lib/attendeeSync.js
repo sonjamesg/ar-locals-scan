@@ -122,3 +122,16 @@ export function extNeed(version, min=MIN_SYNC_EXT){
   if(!version) return 'missing';
   return extVersionAtLeast(version,min)?null:'outdated';
 }
+
+/** Check user / batch check work with any released extension (AR_CHECK has existed since v1.0). */
+export const MIN_CHECK_EXT='1.0.0';
+/** Chromium desktop browser that can load the unpacked extension (Chrome, Edge, Brave…). */
+export function isChromiumUA(ua){ua=ua||'';if(/Firefox|FxiOS|CriOS|EdgiOS/i.test(ua))return false;if(/Android|iPhone|iPad|Mobile/i.test(ua))return false;return /Chrome\/|Chromium\//.test(ua);}
+/** 'browser' | 'missing' | 'outdated' | null — what blocks an extension action. */
+export function extBlock(version,min,ua){if(!version&&ua!==undefined&&!isChromiumUA(ua))return 'browser';return extNeed(version,min);}
+/** Wording for the red warning (pure so it can be tested). */
+export function extWarnText(kind,action,min){
+  if(kind==='browser')return {title:'Chrome extension needed',body:`${action} needs the Locals Card Chrome extension, which only works in Google Chrome on a computer. Open the desk in Chrome, then install the extension.`};
+  if(kind==='outdated')return {title:'Update the Chrome extension',body:`Update the Chrome extension (v${min} or newer) to use ${action}.`};
+  return {title:'Chrome extension needed',body:`Install the Locals Card Chrome extension first to use ${action}.`};
+}
