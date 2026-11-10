@@ -7,7 +7,7 @@ import {queryTokens,normWords} from '../lib/smartSearch.js';
 import VisitProfile from './VisitProfile.jsx';
 import {boardName,FlagChip} from './VisitBits.jsx';
 export {boardName,FlagChip};
-import {IconSearch,IconUser} from './Icons.jsx';
+import {IconSearch,IconUser,IconTrophy} from './Icons.jsx';
 
 const SORTS={days:'Most days',checkins:'Most check-ins',last:'Most recent',name:'Name A to Z'};
 export function sortBoard(list,by){const a=[...list];const nm=r=>(boardName(r)||r.email||'').toLowerCase();
@@ -56,7 +56,7 @@ export default function VisitsPanel({onMsg}){
       <div className="vis-stat"><b>{rows?ranked.length:'-'}</b><span>Members visited</span></div>
       <div className="vis-stat"><b>{rows?totalVisits:'-'}</b><span>Check-ins</span></div>
       <div className="vis-stat"><b>{topDays||'-'}</b><span>Top days</span></div>
-      <button type="button" className={'vis-stat vis-stat-flag'+(only==='flagged'?' on':'')} onClick={()=>setOnly(o=>o==='flagged'?'all':'flagged')} title="Show only members worth checking for card sharing" aria-pressed={only==='flagged'}><b>{raw?flaggedN:'-'}</b><span>Worth checking</span></button>
+      <button type="button" className={'vis-stat vis-stat-flag'+(only==='flagged'?' on':'')} onClick={()=>setOnly(only==='flagged'?'all':'flagged')} title={only==='flagged'?'Show all members again':'Show only members worth checking for card sharing'} aria-pressed={only==='flagged'}><b>{raw?flaggedN:'-'}</b><span>Worth checking</span></button>
     </div>
     <div className="vis-tools">
       <div className="search-field vis-search"><span className="search-ico" aria-hidden="true"><IconSearch/></span>
@@ -67,13 +67,16 @@ export default function VisitsPanel({onMsg}){
         <button type="button" className={only==='flagged'?'on':''} aria-pressed={only==='flagged'} onClick={()=>setOnly('flagged')}>Flagged ({flaggedN})</button>
       </div>
     </div>
+    {only==='flagged'&&<div className="vis-filterbar" role="status"><span>Showing flagged only ({flaggedN})</span><button type="button" className="btn ghost sm" onClick={()=>setOnly('all')}>Show all</button></div>}
     <div className="vis-table" role="table" aria-label="Member of the month board">
       <div className="vis-tr vis-th" role="row"><span role="columnheader">#</span><span role="columnheader">Member</span><span role="columnheader" className="num">Days</span><span role="columnheader" className="num">Check-ins</span><span role="columnheader">Last visit</span><span role="columnheader" className="vis-flagcol"></span></div>
       {rows===null&&<div className="muted vis-empty">Loading…</div>}
       {rows&&!ranked.length&&<div className="muted vis-empty">No check-ins recorded for {monthLabel(year,month)} yet.</div>}
-      {rows&&ranked.length>0&&!shown.length&&<div className="muted vis-empty">{only==='flagged'?'Nobody flagged on this board.':'No one on the board matches that search.'}</div>}
+      {rows&&ranked.length>0&&!shown.length&&(only==='flagged'
+        ?<div className="vis-empty vis-empty-flag"><p>{flaggedN===0?'Nobody is flagged for card sharing this month.':'No flagged member matches that search.'}</p><button type="button" className="btn primary" onClick={()=>{setOnly('all');setQ('');}}>Show all members</button></div>
+        :<div className="muted vis-empty">No one on the board matches that search.</div>)}
       {shown.map(r=>{const n=boardName(r);return <button type="button" role="row" key={r.member_id} className={'vis-tr vis-row'+(r.rank<=3?' top top'+r.rank:'')+(r.flag&&r.flag.severity!=='none'?' flagged':'')} onClick={()=>setSel(r)} title="Open visit profile">
-        <span className="vis-rank" role="cell"><i>{r.rank}</i></span>
+        <span className="vis-rank" role="cell">{r.rank<=3?<span className={'vis-trophy t'+r.rank} title={['1st place','2nd place','3rd place'][r.rank-1]} aria-label={['1st place','2nd place','3rd place'][r.rank-1]}><IconTrophy/><b>{r.rank}</b></span>:<i>{r.rank}</i>}</span>
         <span className="vis-who" role="cell"><span className="vis-ava" aria-hidden="true"><IconUser/></span><span className="vis-namebox">{n?<><span className="vis-name">{n}</span>{r.email&&<span className="vis-email">{r.email}</span>}</>:<span className="vis-name vis-name-email">{r.email||'Member'}</span>}</span></span>
         <span className="num" role="cell"><b>{r.distinct_days}</b><small>day{r.distinct_days===1?'':'s'}</small></span>
         <span className="num" role="cell"><b>{r.visit_count}</b><small>check-in{r.visit_count===1?'':'s'}</small></span>

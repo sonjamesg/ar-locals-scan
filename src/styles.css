@@ -708,3 +708,18 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
   .vis-tr{grid-template-areas:"rank who days ins" "rank last last last" "rank flag flag flag"}
   .vis-row .vis-flagcol{justify-content:flex-start}
 }
+/* Trophies for 1st-3rd on the Visits board */
+.vis-trophy{position:relative;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%}
+.vis-trophy svg{width:22px;height:22px;stroke-width:2}
+.vis-trophy b{position:absolute;right:-3px;bottom:-3px;min-width:16px;height:16px;padding:0 3px;border-radius:999px;background:#fff;border:1.5px solid currentColor;font:800 10px/13px var(--font);text-align:center;box-sizing:border-box}
+.vis-trophy.t1{background:#fbe8a6;color:#9a6b00}
+.vis-trophy.t1 svg{fill:#f2c94c}
+.vis-trophy.t2{background:#e6ebef;color:#5d6b78}
+.vis-trophy.t2 svg{fill:#c7d0d8}
+.vis-trophy.t3{background:#f3d9c3;color:#8a4f1d}
+.vis-trophy.t3 svg{fill:#d9955c}
+.vis-rank{display:flex;justify-content:center}
+.vis-filterbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;margin:0 0 8px;border-radius:10px;background:var(--warn-bg);border:1px solid var(--warn-line);color:#8a4300;font:600 14px var(--font)}
+.vis-filterbar .btn{margin:0}
+.vis-empty-flag{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:24px 14px;border:1.5px dashed var(--line);border-radius:12px;background:#fff;color:var(--mut)}
+.vis-empty-flag p{margin:0}

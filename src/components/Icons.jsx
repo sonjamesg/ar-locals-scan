@@ -70,3 +70,6 @@ export function IconCopy(props){
 export function IconX(props){
   return <svg {...base} {...props}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 }
+export function IconTrophy(props){
+  return <svg {...base} {...props}><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a4 4 0 0 1-4 4"/><path d="M7 5H4v2a4 4 0 0 0 4 4"/></svg>;
+}

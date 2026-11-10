@@ -71,3 +71,23 @@ describe('visits board + profile UI',()=>{
     assert.doesNotMatch(sql,/\b(insert|update|delete|alter table|drop)\b/i);assert.equal((sql.match(/\bstable\b/g)||[]).length,2);
   });
 });
+describe('visits board trophies',()=>{
+  it('1st to 3rd get trophy icons with a small rank number; 4+ keep the round badge',()=>{
+    const root=join(dirname(fileURLToPath(import.meta.url)),'..');const vp=readFileSync(join(root,'components/VisitsPanel.jsx'),'utf8'),css=readFileSync(join(root,'styles.css'),'utf8'),ic=readFileSync(join(root,'components/Icons.jsx'),'utf8');
+    assert.match(vp,/r\.rank<=3\?<span className=\{'vis-trophy t'\+r\.rank\}[^]*<IconTrophy\/><b>\{r\.rank\}<\/b><\/span>:<i>\{r\.rank\}<\/i>/);
+    assert.match(vp,/'1st place','2nd place','3rd place'/);assert.match(ic,/export function IconTrophy/);
+    for(const t of ['t1','t2','t3'])assert.match(css,new RegExp(`\\.vis-trophy\\.${t} svg\\{fill:`));
+    assert.doesNotMatch(vp,/\u2014/);
+  });
+});
+describe('visits flagged filter never traps you',()=>{
+  const root=join(dirname(fileURLToPath(import.meta.url)),'..');const vp=readFileSync(join(root,'components/VisitsPanel.jsx'),'utf8');
+  it('tile toggles, All always resets, bar + empty state offer Show all, Back keeps filter',()=>{
+    assert.match(vp,/onClick=\{\(\)=>setOnly\(only==='flagged'\?'all':'flagged'\)\}/);
+    assert.match(vp,/onClick=\{\(\)=>setOnly\('all'\)\}>All</);
+    assert.match(vp,/Showing flagged only \(\{flaggedN\}\)<\/span><button[^>]*onClick=\{\(\)=>setOnly\('all'\)\}>Show all</);
+    assert.match(vp,/Nobody is flagged for card sharing this month\./);
+    assert.match(vp,/onClick=\{\(\)=>\{setOnly\('all'\);setQ\(''\);\}\}>Show all members</);
+    assert.match(vp,/onBack=\{\(\)=>setSel\(null\)\}/); // filter/sort/search state stays in the panel
+  });
+});
