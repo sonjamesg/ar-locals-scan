@@ -52,7 +52,7 @@ let memberCache={rows:null,at:0,p:null};
 /** Best-effort member row by id from the search cache (null if unavailable). */
 export async function memberById(id){if(!id)return null;try{return (await loadMembers()).find(m=>m.id===id)||null;}catch{return null;}}
 export function invalidateMemberCache(){memberCache={rows:null,at:0,p:null};}
-async function loadMembers(){
+export async function loadMembers(){
  if(memberCache.rows&&Date.now()-memberCache.at<60_000)return memberCache.rows;
  if(memberCache.p)return memberCache.p;
  memberCache.p=(async()=>{const{data,error}=await sb.rpc('list_members');memberCache.p=null;if(error)throw error;memberCache={rows:data||[],at:Date.now(),p:null};return memberCache.rows;})();
