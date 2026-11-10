@@ -8,7 +8,7 @@ import {
   syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,MIN_SYNC_EXT,extVersionAtLeast
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
-import {IconClock,IconExternalLink} from './Icons.jsx';
+import {IconClock,IconExternalLink,IconUsers} from './Icons.jsx';
 
 const POLL_MS=45_000;
 const UPCOMING_PREVIEW=3;
@@ -185,12 +185,29 @@ export default function SessionsPanel({onSearchName}){
         <h3 className="sess-h"><IconClock className="sess-h-ico"/>Sessions now</h3>
         <p className="muted sess-sub">Live Bookwhen schedule (London). Not whether the scanned member is booked. Closes early / removals drop off after refresh.</p>
       </div>
-      <button type="button" className="btn ghost sm" onClick={()=>load({manual:true})} disabled={loading}>{loading?'Refreshing…':'Refresh'}</button>
+      <div className="sess-head-acts">
+        <button type="button" className="btn primary sm sess-resync" onClick={reSyncAttendees} disabled={syncBusy||!allowlist.length}
+          title="Read names from each session register in Bookwhen via the extension (signed-in browser). Only runs when pressed.">
+          <IconUsers/><span>{syncBusy?`Re-syncing${syncProg?` ${syncProg.i||''}/${syncProg.total}`:''}…`:'Re-sync names'}</span>
+        </button>
+        <button type="button" className="btn ghost sm" onClick={()=>load({manual:true})} disabled={loading}>{loading?'Refreshing…':'Refresh'}</button>
+      </div>
     </div>
 
     <div className="sess-status-line muted">
       {asOf?<>Updated {formatAsOf(asOf)}{fresh.stale?' · may be out of date':''}</>:'Not updated yet'}
       {showingStale&&<> · showing last good list (refresh failed)</>}
+    </div>
+
+    <div className="sess-att-bar">
+      {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
+      {!!snapshots.length?<div className="muted sess-att-asof">
+        Names snapshot {lastCap?formatAsOf(new Date(lastCap).toISOString()):'—'}
+        {' · '}{sum.people} name{sum.people===1?'':'s'} from {sum.ok} session{sum.ok===1?'':'s'}
+        {sum.failed?` · ${sum.failed} failed`:''}
+        {sum.partial?` · ${sum.partial} incomplete`:''}
+        {' · '}name only, not verified
+      </div>:!syncBusy&&!syncErr&&<div className="muted sess-att-asof">Names not synced — press Re-sync names to show who's booked under each session.</div>}
     </div>
 
     <div className="sess-scroll">
@@ -222,27 +239,6 @@ export default function SessionsPanel({onSearchName}){
         </button>
       )}
 
-      <div className="sess-att">
-        <div className="sess-att-head">
-          <div>
-            <div className="sess-label" style={{marginTop:12}}>Attendees (manual)</div>
-            <p className="muted sess-att-note">Press Re-sync to read open registers. Names appear under each session. Name only — not a verified Locals match. Does not run on refresh.</p>
-          </div>
-          <button type="button" className="btn primary sm" onClick={reSyncAttendees} disabled={syncBusy||!allowlist.length}
-            title="Opens each session register in Bookwhen via the extension (signed-in browser)">
-            {syncBusy?`Re-syncing${syncProg?` ${syncProg.i||''}/${syncProg.total}`:''}…`:'Re-sync attendees'}
-          </button>
-        </div>
-        {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
-        {!!snapshots.length&&<div className="muted sess-att-asof">
-          Snapshot {lastCap?formatAsOf(new Date(lastCap).toISOString()):'—'}
-          {' · '}{sum.people} name{sum.people===1?'':'s'} from {sum.ok} session{sum.ok===1?'':'s'}
-          {sum.failed?` · ${sum.failed} failed`:''}
-          {sum.partial?` · ${sum.partial} incomplete`:''}
-          {' · '}not live
-        </div>}
-        {!snapshots.length&&!syncBusy&&<div className="muted sess-empty sess-att-empty">No attendee snapshot yet — press Re-sync attendees when ready.</div>}
-      </div>
     </div>
 
     <div className="sess-foot">

@@ -1,6 +1,7 @@
 import VisitStats from './VisitStats.jsx';
 import {useEffect,useState} from 'react';import {sb} from '../lib.js';
-import {IconSearch,IconArrowLeft} from './Icons.jsx';
+import {IconSearch,IconArrowLeft,IconUser,IconPencil,IconCalendar,IconSettings,IconExternalLink} from './Icons.jsx';
+import {renewalInfo} from '../lib/renewal.js';
 import {cardLinkStatus,isNew} from '../lib/memberFilters.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
@@ -62,23 +63,48 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',empt
    {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit hit-grid" onClick={()=>onPick(h)}><MemberRowCells h={h} newBadge={<NewBadge h={h}/>}/></button><OpenBtn h={h}/></li>)}</ul>
   {empty&&emptyGuide&&<div className="not-found-guide">{emptyGuide}</div>}
  </div>;}
-export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');
- useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));},[h.id]);useEffect(()=>{setSt('');},[h.id]);
+/** Status tile text + tone for member detail. */
+function statusOf(h){
+ if(h.cancelled_at)return {t:'Cancelled',tone:'bad',sub:'on '+new Date(h.cancelled_at).toLocaleDateString('en-GB')};
+ if(h.bw_checked_at)return {t:h.bw_status||'Unknown',tone:h.bw_status==='ACTIVE'?'ok':'bad',sub:h.bw_lcl?'LCL '+String(h.bw_lcl).replace(/^LCL/,''):null};
+ if(h.pending_card)return {t:'Card pending',tone:'warn',sub:null};
+ return {t:'Not checked',tone:'mut',sub:null};}
+export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?'':v;const[f,setF]=useState(cl(h.first_name));const[l,setL]=useState(cl(h.last_name));const[st,setSt]=useState('');const[editing,setEditing]=useState(false);
+ useEffect(()=>{setF(cl(h.first_name));setL(cl(h.last_name));setEditing(false);},[h.id]);useEffect(()=>{setSt('');},[h.id]);
  const editable=h.id&&h.src!=='Bookwhen';const dirty=editable&&(f.trim()!==cl(h.first_name).trim()||l.trim()!==cl(h.last_name).trim());
- async function save(){if(!dirty){setSt('✓ No changes');return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
-  if(error)return setSt('Error: '+error.message);setSt('✓ Saved');onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
- return <div className="selected"><div className="sel-h"><button type="button" className="btn-back sel-back" onClick={onClear} title="Back to results"><IconArrowLeft/><span>Back</span></button><span>Member details</span></div>
- {h.cancelled_at&&<div className="md-cancel">Membership cancelled on {new Date(h.cancelled_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} — do not issue a card.</div>}<div className="md-head"><div className="md-avatar">{(nameOf(h)||h.email||'?').split(/[\s@.]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join('')}</div>
-  <div className="md-id"><div className="md-name">{nameOf(h)||(h.email||'(no name)').split('@')[0]}</div>{h.email&&<div className="md-email">{h.email}</div>}
-   <div className="md-card-no"><span className="md-card-label">Card number</span>{h.card_barcode?<span className="md-card-val">{h.card_barcode}</span>:<span className="md-card-none">No card linked</span>}</div>
-   <div className="md-tags">{h.membership_ends_at&&<span className="chip">Ends {h.membership_ends_at}</span>}{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}{h.pending_card&&!h.cancelled_at&&<span className="chip chip-pend">⏳ Card pending</span>}{h.cancelled_at&&<span className="chip chip-cancel">✕ Cancelled {new Date(h.cancelled_at).toLocaleDateString('en-GB')}</span>}</div></div></div>
- <div className="md-panel"><div className="md-label">Bookwhen membership</div>
-  <CheckUser h={h} onUpdate={onUpdate} actions={<OpenBtn h={h}/>}/></div>
- {editable&&<form className="name-edit" onSubmit={e=>{e.preventDefault();save();}}>
-  <label>First name<input value={f} onChange={e=>{setF(e.target.value);setSt('');}} placeholder="First name"/></label>
-  <label>Last name<input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name"/></label></form>}
+ const name=nameOf(h);const showInputs=editable&&(!name||editing);
+ async function save(){if(!dirty){setSt('✓ No changes');setEditing(false);return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
+  if(error)return setSt('Error: '+error.message);setSt('✓ Saved');setEditing(false);onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
+ function cancelEdit(){setF(cl(h.first_name));setL(cl(h.last_name));setEditing(false);setSt('');}
+ const s=statusOf(h);const rn=renewalInfo(h);const t=bwTerm(h);
+ return <div className="selected md-v3"><div className="sel-h"><button type="button" className="btn-back sel-back" onClick={onClear} title="Back to results"><IconArrowLeft/><span>Back</span></button><span>Member details</span></div>
+ {h.cancelled_at&&<div className="md-cancel">Membership cancelled on {new Date(h.cancelled_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} — do not issue a card.</div>}
+ <div className="md-head">
+  <div className="md-tile-avatar" aria-hidden="true"><IconUser/></div>
+  <div className="md-id">
+   {showInputs
+    ?<form className="md-name-form" onSubmit={e=>{e.preventDefault();save();}} aria-label="Member name">
+      <div className="md-name-inputs">
+       <label><span className="sr-only">First name</span><input value={f} onChange={e=>{setF(e.target.value);setSt('');}} placeholder="First name" aria-label="First name" autoFocus={editing}/></label>
+       <label><span className="sr-only">Last name</span><input value={l} onChange={e=>{setL(e.target.value);setSt('');}} placeholder="Last name" aria-label="Last name"/></label>
+      </div>
+      <div className="md-name-acts"><button type="submit" className={'btn sm '+(dirty?'primary':'ghost')} disabled={st==='Saving…'}>Save name</button>{editing&&<button type="button" className="btn ghost sm" onClick={cancelEdit}>Cancel</button>}{!name&&!editing&&<span className="md-hint">No name yet — type it in</span>}</div>
+     </form>
+    :<div className="md-name-row"><h3 className="md-name">{name||(h.email||'(no name)').split('@')[0]}</h3>{editable&&<button type="button" className="md-edit" onClick={()=>setEditing(true)} aria-label="Edit name" title="Edit name"><IconPencil/></button>}</div>}
+   {h.email&&<div className="md-email" title={h.email}>{h.email}</div>}
+   {(h.lost_card_at||(h.pending_card&&!h.cancelled_at&&h.bw_checked_at))&&<div className="md-tags">{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}{h.pending_card&&!h.cancelled_at&&h.bw_checked_at&&<span className="chip chip-pend">⏳ Card pending</span>}</div>}
+  </div></div>
+ <div className="md-facts">
+  <div className={'md-fact md-fact-status tone-'+s.tone}><span className="md-fact-k">Status</span><span className="md-fact-v"><i className="md-dot"/>{s.t}</span>{s.sub&&<span className="md-fact-sub">{s.sub}</span>}</div>
+  <div className="md-fact md-fact-card"><span className="md-fact-k">Card number</span>{h.card_barcode?<span className="md-fact-v md-mono">{h.card_barcode}</span>:<span className="md-fact-v md-card-none">No card linked</span>}</div>
+  <div className={'md-fact md-fact-renew tone-'+(rn?rn.tone:'mut')}><span className="md-renew-ico"><IconCalendar/></span><span className="md-renew-txt"><span className="md-fact-k">{rn?.source==='ends'?'Membership':'Renewal'}</span><span className="md-renew-date">{rn?rn.label:'No renewal date'}</span>{rn&&<span className="md-fact-sub">{rn.rel}{rn.tone==='soon'?' — renewal due soon':rn.tone==='expired'?' — expired':''}</span>}{rn?.endsDiffers&&<span className="md-fact-sub">{rn.endsLabel}</span>}</span></div>
+ </div>
+ {(t||h.bookwhen_customer_id)&&<div className="md-links">
+  {t&&<a className="btn ghost sm" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen <IconExternalLink/></a>}
+  {h.bookwhen_customer_id&&<a className="btn ghost sm" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships <IconExternalLink/></a>}</div>}
  {extra&&<div className="sel-extra">{extra}</div>}
  {h.id&&h.src!=='Bookwhen'&&<VisitStats memberId={h.id}/>}
+ {editable&&<details className="md-adv"><summary><IconSettings/><span>Advanced</span></summary><div className="md-adv-body"><CheckUser h={h} onUpdate={onUpdate}/></div></details>}
  <div className="sel-foot"><div className="sel-left">{children}</div><div className="sel-right">{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
   {editable&&<button className={'btn lg '+(dirty?'primary':'ghost')} disabled={st==='Saving…'} onClick={save}>Save</button>}</div></div></div>;}
 export function UnlinkCard({h,onUnlinked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
@@ -116,10 +142,9 @@ export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);con
   const{data,error}=await sb.rpc('save_bw_check',{p_member_id:h.id,p_status:res.status||'UNKNOWN',p_lcl:res.lcl,p_renews_at:res.renews_at,p_renews_text:res.renews_text,p_sub_id:res.sub_id,p_bookwhen_customer_id:res.customer_id||null});
   setBusy(false);if(error){setErr(error.message);return;}
   const body={...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status};setR(body);onUpdate&&onUpdate({...h,...body});}
- const cls=h.cancelled_at?'bw-cancel':v?(v.bw_status==='ACTIVE'?'bw-ok':'bw-bad'):'';
- const fmt=d=>new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
  return <div className="bw-check">
-  <div className="md-chips">{h.cancelled_at&&!v&&<span className="chip chip-status bw-cancel"><i/>Cancelled</span>}{v?<><span className={'chip chip-status '+cls}><i/>{h.cancelled_at?'Cancelled':(v.bw_status||'UNKNOWN')}</span>{v.bw_lcl&&<span className="chip"><em>LCL</em>{v.bw_lcl.replace(/^LCL/,'')}</span>}{v.bw_renews_at&&<span className="chip"><em>Renews</em>{fmt(v.bw_renews_at)}</span>}<span className="md-checked">Checked {ago(v.bw_checked_at)}</span></>:<span className="md-checked">Not checked yet</span>}</div>
+  <p className="md-adv-note">Re-check this member's Locals membership in Bookwhen (needs the extension). Status and renewal above update automatically.</p>
+  <div className="md-chips"><span className="md-checked">{v?.bw_checked_at?<>Last checked {ago(v.bw_checked_at)}</>:'Not checked yet'}</span></div>
   {err&&<div className="err md-err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}<div className="contact-admin">⚠ contact admin - James</div></div>}
   <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':can?'Find in Bookwhen by email, check Locals and save CustomerID':'No Bookwhen ID or email — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>
  </div>;}

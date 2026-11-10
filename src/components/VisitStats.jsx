@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import {sb} from '../lib.js';
-import {formatVisitWhen} from '../lib/visits.js';
+import {friendlyVisit} from '../lib/visits.js';
+import {IconCalendarCheck,IconLogIn,IconTrend,IconClock} from './Icons.jsx';
 
 export default function VisitStats({memberId}){
   const[st,setSt]=useState(null);
@@ -21,19 +22,24 @@ export default function VisitStats({memberId}){
     return()=>{cancelled=true;};
   },[memberId]);
   if(!memberId) return null;
+  const tiles=st?[
+    {k:'days',icon:<IconCalendarCheck/>,v:st.distinct_days||0,l:'Days visited'},
+    {k:'checkins',icon:<IconLogIn/>,v:st.total_visits||0,l:'Check-ins'},
+    {k:'month',icon:<IconTrend/>,v:st.days_this_month||0,l:'Days this month',sub:(st.visits_this_month||0)+' check-in'+((st.visits_this_month||0)===1?'':'s')},
+  ]:[];
+  const earlier=(hist||[]).slice(1,6);
   return <div className="md-panel visit-stats">
-    <div className="md-label">Gym visits (reception check-ins)</div>
+    <div className="md-label">Gym visits</div>
     {err&&<div className="err md-err">{err}</div>}
     {!st&&!err&&<div className="muted">Loading visits…</div>}
     {st&&<>
-      <div className="md-chips">
-        <span className="chip"><em>Days</em>{st.distinct_days||0}</span>
-        <span className="chip"><em>Check-ins</em>{st.total_visits||0}</span>
-        <span className="chip"><em>This month</em>{st.days_this_month||0}d / {st.visits_this_month||0}</span>
-        {st.last_visit_at&&<span className="chip"><em>Last</em>{formatVisitWhen(st.last_visit_at)}</span>}
+      <div className="vs-tiles">
+        {tiles.map(t=><div key={t.k} className={'vs-tile vs-'+t.k}><span className="vs-ico">{t.icon}</span><span className="vs-num">{t.v}</span><span className="vs-lbl">{t.l}</span>{t.sub&&<span className="vs-sub">{t.sub}</span>}</div>)}
       </div>
-      {hist&&hist.length>0&&<ul className="visit-hist">{hist.map(h=><li key={h.id}>{formatVisitWhen(h.visited_at)}</li>)}</ul>}
-      {hist&&!hist.length&&<div className="muted md-checked">No check-ins recorded yet</div>}
+      <div className="vs-last"><span className="vs-ico"><IconClock/></span>{st.last_visit_at
+        ?<span>Last visit <b>{friendlyVisit(st.last_visit_at)}</b></span>
+        :<span className="muted">No check-ins recorded yet</span>}</div>
+      {earlier.length>0&&<div className="vs-earlier"><span className="vs-earlier-k">Earlier</span>{earlier.map(h=><span key={h.id} className="vs-pill">{friendlyVisit(h.visited_at)}</span>)}</div>}
     </>}
   </div>;
 }

@@ -53,6 +53,16 @@ export function formatVisitWhen(iso){
   return new Date(iso).toLocaleString('en-GB',{timeZone:VISIT_TZ,day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
+/** "6 Nov, 16:55" this year, "6 Nov 2025, 16:55" otherwise (London time). */
+export function friendlyVisit(iso, now=new Date()){
+  if(!iso) return '';
+  const d=new Date(iso);
+  const y=v=>new Intl.DateTimeFormat('en-GB',{timeZone:VISIT_TZ,year:'numeric'}).format(v);
+  const date=d.toLocaleDateString('en-GB',{timeZone:VISIT_TZ,day:'numeric',month:'short',...(y(d)===y(now)?{}:{year:'numeric'})});
+  const time=d.toLocaleTimeString('en-GB',{timeZone:VISIT_TZ,hour:'2-digit',minute:'2-digit'});
+  return `${date}, ${time}`;
+}
+
 export function currentLondonMonth(){
   const parts=new Intl.DateTimeFormat('en-GB',{timeZone:VISIT_TZ,year:'numeric',month:'numeric'}).formatToParts(new Date());
   const y=+parts.find(p=>p.type==='year').value;

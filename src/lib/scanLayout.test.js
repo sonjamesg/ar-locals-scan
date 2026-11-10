@@ -33,7 +33,7 @@ describe('synced names sit under each session card',()=>{
     assert.match(panel,/attendeesForEvent/);
     assert.match(panel,/sess-names/);
     assert.match(panel,/not synced yet/);
-    assert.match(panel,/Re-sync attendees/);
+    assert.match(panel,/Re-sync names/);
     assert.match(panel,/onSearchName/);
     assert.doesNotMatch(panel,/sess-att-list/);
     assert.doesNotMatch(panel,/people\.map/);
