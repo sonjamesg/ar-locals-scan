@@ -5,7 +5,7 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed,EXT_LATEST
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
 import {ExtDownloadLink,openExtHelp} from './ExtensionHelp.jsx';
@@ -161,7 +161,7 @@ export default function SessionsPanel({onSearchName}){
     setSyncBusy(true);
     setSyncProg({i:0,total:allowlist.length});
     // One batch call — extension walks sequentially; progress is coarse
-    const res=await extAttendeeSync(allowlist.map(({id,title,start_at,end_at})=>({id,title,start_at,end_at})));
+    const res=await extAttendeeSync(allowlist.map(({id,title,start_at,end_at})=>({id,title,start_at,end_at})),(done,total)=>{if(gen===syncGen.current)setSyncProg({i:done,total});});
     if(gen!==syncGen.current) return; // superseded
     setSyncBusy(false);
     setSyncProg(null);
@@ -211,6 +211,9 @@ export default function SessionsPanel({onSearchName}){
           <ExtDownloadLink className="btn primary sm" label="Download extension" onClick={()=>openExtHelp()}/>
           <button type="button" className="btn ghost sm" onClick={openExtHelp}>How to install</button>
         </div>
+      </div>}
+      {!extProblem&&window.__arExt&&!extVersionAtLeast(window.__arExt,EXT_LATEST)&&<div className="ext-soft">
+        Faster extension v{EXT_LATEST} available (syncs 5 sessions at once). <ExtDownloadLink className="foot-fb ext-soft-link" label="Download" onClick={()=>openExtHelp()}/>
       </div>}
       {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
       {sum.ok>0&&<div className="muted sess-att-asof">

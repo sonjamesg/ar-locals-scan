@@ -1,3 +1,4 @@
+import {smartSearch,scoreMember} from './smartSearch.js';
 /** Pure helpers for All members status + card-link filters. */
 export const MONTH=30*864e5;
 export const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at).getTime()<MONTH;
@@ -28,12 +29,17 @@ export function matchCard(r,cf){
   if(cf==='unlinked') return !isLinked(r);
   return true;
 }
+/** Single-row check (all query words present, forgiving). */
 export function matchQuery(r,q){
-  const ql=(q||'').trim().toLowerCase();
-  if(!ql) return true;
-  return [r.first_name,r.last_name,r.email,r.bw_lcl,r.card_barcode].join(' ').toLowerCase().includes(ql);
+  const ql=(q||'').trim();
+  if(ql.length<2) return true;
+  const s=scoreMember(r,ql);
+  return !!s&&!s.partial;
 }
 /** Filter full member list (not a page slice). Counts should use this same predicate. */
 export function filterMembers(rows,{status='all',card='all',q=''}={}){
-  return (rows||[]).filter(r=>matchStatus(r,status)&&matchCard(r,card)&&matchQuery(r,q));
+  const base=(rows||[]).filter(r=>matchStatus(r,status)&&matchCard(r,card));
+  if(String(q||'').trim().length<2) return base;
+  // Ranked forgiving search; partial (some words) matches follow full ones.
+  return smartSearch(base,q,{limit:Infinity});
 }

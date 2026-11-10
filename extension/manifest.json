@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AR Locals – Bookwhen Check",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Lets the Atlantic Reach Locals desk check a member's Bookwhen Locals status using this browser's Bookwhen login.",
   "permissions": ["tabs", "scripting"],
   "host_permissions": ["https://atlanticreach.bookwhen.com/*"],

@@ -23,6 +23,10 @@ Open in Bookwhen / Memberships buttons always stay as the manual route.
 ## 1.1.0
 Check user works without a Bookwhen CustomerID: the extension searches Locals customers by email, picks the matching `/customers/{id}`, checks it, and returns `customer_id` so the desk saves it.
 
+## 1.2.2 — Faster Re-sync
+
+- Reads up to 5 session registers at once (5 hidden tabs), with live progress back to the desk. Tabs always close; a sign-in failure marks the not-yet-started sessions failed.
+
 ## 1.2.1 — Re-sync attendees fix
 
 - Register parser now reads the live Bookwhen register (sortable `Booking`/`Name` headers with `data-action="click->…"` broke 1.2.0's header detection, so every session failed).

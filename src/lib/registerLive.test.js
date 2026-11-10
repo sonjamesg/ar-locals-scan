@@ -49,7 +49,7 @@ describe('live Bookwhen register markup (sanitised fixture)',()=>{
 });
 
 describe('extension v1.2.1 sync behaviour',()=>{
-  it('manifest is 1.2.1 and app requires it',()=>{assert.equal(manifest.version,'1.2.1');assert.equal(MIN_SYNC_EXT,'1.2.1');});
+  it('manifest is 1.2.2; app still accepts 1.2.1',()=>{assert.equal(manifest.version,'1.2.2');assert.equal(MIN_SYNC_EXT,'1.2.1');});
   it('version compare',()=>{
     assert.equal(extVersionAtLeast('1.2.0','1.2.1'),false);
     assert.equal(extVersionAtLeast('1.2.1','1.2.1'),true);
@@ -65,7 +65,7 @@ describe('extension v1.2.1 sync behaviour',()=>{
   it('never aborts the batch: login failure marks remaining sessions failed',()=>{
     const fn=/async function syncAttendances[\s\S]*?\n}\n/.exec(bg)[0];
     assert.doesNotMatch(fn,/\bbreak\b/);
-    assert.match(fn,/if \(loginError\) \{ out\.push\(fail/);
+    assert.match(fn,/if \(loginError\) return fail\(ev, id, loginError\)/);
   });
   it('failed snapshot exposes its reason to the session row',()=>{
     const g=attendeesForEvent([{event_id:'ev-a-20261110103000',status:'failed',error:'Bookwhen took too long'}],'ev-a-20261110103000');

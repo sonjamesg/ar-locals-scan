@@ -517,3 +517,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-att-bar .sess-att-asof{margin:0 0 4px}
 .sess-scroll .sess-label:first-child,.sess-scroll>.sess-label:first-of-type{margin-top:0}
 @media(max-width:900px){.sess-panel{max-height:none}}
+.hit-partial{display:inline-block;font:700 10px var(--font);letter-spacing:.04em;text-transform:uppercase;color:var(--mut);background:#eef2f5;border:1px solid var(--line);border-radius:999px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+.ext-soft{font-size:12px;color:var(--mut);margin:0 0 4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ext-soft .ext-soft-link{font-size:12px;padding:0}
+.ext-soft .ext-soft-link svg{width:13px;height:13px}

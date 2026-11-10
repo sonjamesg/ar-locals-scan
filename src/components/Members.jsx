@@ -2,6 +2,7 @@ import VisitStats from './VisitStats.jsx';
 import {useEffect,useState} from 'react';import {sb} from '../lib.js';
 import {IconSearch,IconArrowLeft,IconUser,IconPencil,IconCalendar,IconSettings,IconExternalLink} from './Icons.jsx';
 import {renewalInfo} from '../lib/renewal.js';
+import {smartSearch} from '../lib/smartSearch.js';
 import {cardLinkStatus,isNew} from '../lib/memberFilters.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
@@ -29,7 +30,7 @@ export function BwChips({h}){const s=StatusChip({h}),r=RenewChip({h});if(!s&&!r)
 export function MemberInfo({h,badge=true}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
  <div className="hit-name-row"><span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
  {n&&h.email&&<span className="hit-email" title={h.email}>{h.email}</span>}
- <span className="hit-meta">{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
+ <span className="hit-meta">{h._partial&&<span className="hit-partial" title={`Matches ${h._matched} of ${h._total} words`}>partial match</span>}{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
 /** Aligned list row: name | NEW | (right) status · card · renewal. Empty cells keep columns from shifting. */
 export function MemberRowCells({h,newBadge=null,status}){return <>
  <MemberInfo h={h} badge={false}/>
@@ -42,12 +43,23 @@ export function MemberRowCells({h,newBadge=null,status}){return <>
 export const NewBadge=({h})=>isNew(h)?<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null;
 export function Confirm({title,children,onYes,onNo,busy}){return <div className="modal-bg"><div className="modal" role="dialog">
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
+/** Member list cache for forgiving client-side search (~1k rows). Refreshes when older than 60s. */
+let memberCache={rows:null,at:0,p:null};
+export function invalidateMemberCache(){memberCache={rows:null,at:0,p:null};}
+async function loadMembers(){
+ if(memberCache.rows&&Date.now()-memberCache.at<60_000)return memberCache.rows;
+ if(memberCache.p)return memberCache.p;
+ memberCache.p=(async()=>{const{data,error}=await sb.rpc('list_members');memberCache.p=null;if(error)throw error;memberCache={rows:data||[],at:Date.now(),p:null};return memberCache.rows;})();
+ return memberCache.p;}
 export function useSearch(q,withBookwhen){const[hits,setHits]=useState([]);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
- useEffect(()=>{if(q.trim().length<2){setHits([]);setErr('');return;}const t=setTimeout(async()=>{setBusy(true);setErr('');
-  const[l,bw]=await Promise.all([sb.rpc('search_members',{p_q:q}),withBookwhen?sb.functions.invoke('bookwhen-search',{body:{q}}).catch(()=>({data:[]})):{data:[]}]);
-  if(l.error){setErr(l.error.message);setHits([]);setBusy(false);return;}
-  const loc=(l.data||[]).map(m=>({...m,src:'Local'}));const ids=new Set(loc.map(m=>m.bookwhen_customer_id).filter(Boolean));
-  setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,email:x.email||x.email_hint,src:'Bookwhen'}))]);setBusy(false);},250);return()=>clearTimeout(t);},[q,withBookwhen]);
+ useEffect(()=>{if(q.trim().length<2){setHits([]);setErr('');return;}let off=false;const t=setTimeout(async()=>{setBusy(true);setErr('');
+  let loc=[];
+  try{loc=smartSearch(await loadMembers(),q).map(m=>({...m,src:'Local'}));}
+  catch(e){const l=await sb.rpc('search_members',{p_q:q});if(l.error){if(!off){setErr(l.error.message);setHits([]);setBusy(false);}return;}loc=(l.data||[]).map(m=>({...m,src:'Local'}));}
+  const bw=withBookwhen?await sb.functions.invoke('bookwhen-search',{body:{q}}).catch(()=>({data:[]})):{data:[]};
+  if(off)return;
+  const ids=new Set(loc.map(m=>m.bookwhen_customer_id).filter(Boolean));
+  setHits([...loc,...(Array.isArray(bw.data)?bw.data:[]).filter(x=>!ids.has(x.bookwhen_customer_id)).map(x=>({...x,email:x.email||x.email_hint,src:'Bookwhen'}))]);setBusy(false);},200);return()=>{off=true;clearTimeout(t);};},[q,withBookwhen]);
  return{hits,busy,err};}
 export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',emptyGuide=null,label='Find existing member',placeholder='Search by name or signup email',initialQuery=''}){const[q,setQ]=useState(initialQuery||'');useEffect(()=>{if(initialQuery!=null&&initialQuery!=='')setQ(initialQuery);},[initialQuery]);const{hits,busy,err}=useSearch(q,withBookwhen);
  const empty=!busy&&!err&&q.trim().length>=2&&!hits.length;
@@ -126,9 +138,11 @@ export function extCheck(customerId,email){return new Promise(ok=>{const reqId=M
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — use Memberships ↗'});},45000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId,email},location.origin);});}
-export function extAttendeeSync(events){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
+export function extAttendeeSync(events,onProgress){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
  const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — open a register manually or retry Re-sync'});},300000);
- const f=e=>{if(e.source===window&&e.data?.type==='AR_ATTENDEE_SYNC_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
+ const f=e=>{if(e.source!==window||e.data?.reqId!==reqId)return;
+  if(e.data.type==='AR_ATTENDEE_SYNC_PROGRESS'){onProgress&&onProgress(e.data.done,e.data.total);return;}
+  if(e.data.type==='AR_ATTENDEE_SYNC_RESULT'){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_ATTENDEE_SYNC',reqId,events},location.origin);});}
 export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);

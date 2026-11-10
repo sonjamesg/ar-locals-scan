@@ -114,7 +114,7 @@ export function ticketInfo(ticket){
 }
 
 /** Version of the extension zip published at ./ar-locals-extension.zip (keep in sync with extension/manifest.json). */
-export const EXT_LATEST='1.2.1';
+export const EXT_LATEST='1.2.2';
 export const EXT_ZIP_PATH='ar-locals-extension.zip';
 export const CHROME_EXT_ADDRESS='chrome://extensions';
 /** 'missing' | 'outdated' | null for the Re-sync names requirement. */

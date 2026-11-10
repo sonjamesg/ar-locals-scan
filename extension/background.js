@@ -1,4 +1,5 @@
 import { parseSubscriptions, parseDetail, looksLoggedOut, parseCustomerSearch, searchUrl, LOCALS_PRODUCT } from './parse.js';
+import { runPool } from './pool.js';
 import { parseAttendancesHtml, eventIdFromHref, registerReady, looksLoggedOutAttendances } from './parseAttendances.js';
 
 const BW = 'https://atlanticreach.bookwhen.com';
@@ -71,47 +72,47 @@ async function check(customerId, email) {
   } finally { chrome.tabs.remove(tab.id).catch(() => {}); }
 }
 
-/** Sequential register reads for desk-allowlisted event ids only. Every requested event gets a result. */
-async function syncAttendances(events) {
+export const SYNC_WORKERS = 5;
+
+/** Register reads for desk-allowlisted event ids, 5 hidden tabs at once. Every requested event gets a result. */
+async function syncAttendances(events, onProgress) {
   const list = Array.isArray(events) ? events : [];
-  const out = [];
   const fail = (ev, id, error) => ({
     event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null, event_end_at: ev.end_at || null,
     status: 'failed', error, attendees: [], incomplete: true, captured_at: new Date().toISOString(),
   });
-  let loginError = null;
-  let tab = null;
-  try {
-    tab = await chrome.tabs.create({ url: 'about:blank', active: false });
-    for (const raw of list) {
-      const ev = raw || {};
-      const id = String(ev.id || '').trim();
-      if (!EVENT_ID_RE.test(id)) { out.push(fail(ev, id, 'Invalid event id')); continue; }
-      if (loginError) { out.push(fail(ev, id, loginError)); continue; }
-      try {
-        const [href, html] = await grabRegister(tab.id, `${BW}/events/${encodeURIComponent(id)}/attendances`);
-        const parsed = parseAttendancesHtml(html, href);
-        if (parsed.error && /not signed in/i.test(parsed.error)) { loginError = parsed.error; out.push(fail(ev, id, parsed.error)); continue; }
-        const gotId = parsed.event_id || eventIdFromHref(href);
-        if (gotId && gotId !== id) { out.push(fail(ev, id, 'Bookwhen opened a different register')); continue; }
-        if (!gotId && !/bookwhen\.com/.test(href || '')) { out.push(fail(ev, id, 'Register page did not open (got ' + String(href || '').slice(0, 60) + ')')); continue; }
-        out.push({
-          event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null, event_end_at: ev.end_at || null,
-          status: parsed.error ? 'failed' : (parsed.incomplete ? 'partial' : 'ok'),
-          error: parsed.error || null, warnings: parsed.warnings || [],
-          attendees: parsed.attendees || [], row_count: parsed.row_count, footer_count: parsed.footer_count,
-          incomplete: !!parsed.incomplete, captured_at: new Date().toISOString(),
-        });
-      } catch (e) {
-        out.push(fail(ev, id, e?.message || String(e)));
-      }
+  let loginError = null; // once any register looks signed out, remaining (not yet started) events fail fast
+  const results = await runPool(list, SYNC_WORKERS, async (raw, _i, tab) => {
+    const ev = raw || {};
+    const id = String(ev.id || '').trim();
+    if (!EVENT_ID_RE.test(id)) return fail(ev, id, 'Invalid event id');
+    if (loginError) return fail(ev, id, loginError);
+    if (!tab) return fail(ev, id, 'Could not open Bookwhen tab');
+    try {
+      const [href, html] = await grabRegister(tab.id, `${BW}/events/${encodeURIComponent(id)}/attendances`);
+      const parsed = parseAttendancesHtml(html, href);
+      if (parsed.error && /not signed in/i.test(parsed.error)) { loginError = parsed.error; return fail(ev, id, parsed.error); }
+      const gotId = parsed.event_id || eventIdFromHref(href);
+      if (gotId && gotId !== id) return fail(ev, id, 'Bookwhen opened a different register');
+      if (!gotId && !/bookwhen\.com/.test(href || '')) return fail(ev, id, 'Register page did not open (got ' + String(href || '').slice(0, 60) + ')');
+      return {
+        event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null, event_end_at: ev.end_at || null,
+        status: parsed.error ? 'failed' : (parsed.incomplete ? 'partial' : 'ok'),
+        error: parsed.error || null, warnings: parsed.warnings || [],
+        attendees: parsed.attendees || [], row_count: parsed.row_count, footer_count: parsed.footer_count,
+        incomplete: !!parsed.incomplete, captured_at: new Date().toISOString(),
+      };
+    } catch (e) {
+      return fail(ev, id, e?.message || String(e));
     }
-  } catch (e) {
-    // Tab could not be created — report every remaining event rather than aborting silently
-    const msg = 'Could not open Bookwhen tab: ' + (e?.message || e);
-    for (const raw of list.slice(out.length)) out.push(fail(raw || {}, String(raw?.id || ''), msg));
-  } finally { if (tab) chrome.tabs.remove(tab.id).catch(() => {}); }
-  return { snapshots: out, version: chrome.runtime.getManifest().version };
+  }, {
+    setup: async () => { try { return await chrome.tabs.create({ url: 'about:blank', active: false }); } catch { return null; } },
+    teardown: tab => tab && chrome.tabs.remove(tab.id).catch(() => {}),
+    onDone: (done, total) => onProgress && onProgress(done, total),
+  });
+  const snapshots = results.map((r, i) => (r && !r.__error) ? r
+    : fail(list[i] || {}, String(list[i]?.id || ''), r?.__error?.message || 'Failed'));
+  return { snapshots, version: chrome.runtime.getManifest().version };
 }
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
@@ -120,7 +121,9 @@ chrome.runtime.onMessage.addListener((msg, _s, reply) => {
     return true;
   }
   if (msg?.type === 'syncAttendances') {
-    syncAttendances(msg.events).then(r => reply({ ok: true, ...r }), e => reply({ error: e.message }));
+    const tabId = _s?.tab?.id; const reqId = msg.reqId;
+    const progress = (done, total) => { if (tabId != null) chrome.tabs.sendMessage(tabId, { type: 'syncProgress', reqId, done, total }).catch(() => {}); };
+    syncAttendances(msg.events, progress).then(r => reply({ ok: true, ...r }), e => reply({ error: e.message }));
     return true;
   }
 });
