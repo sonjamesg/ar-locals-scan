@@ -5,7 +5,7 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,MIN_SYNC_EXT,extVersionAtLeast
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
 import {IconClock,IconExternalLink,IconUsers,IconUser} from './Icons.jsx';
@@ -45,7 +45,12 @@ function SessionNames({group, onSearchName}){
                   title="Search members for this name — confirm before linking a card">
                   <span className="sess-name-ico" aria-hidden="true"><IconUser/></span>
                   <span className="sess-name-txt">{a.name}</span>
-                  <span className={'sess-name-type'+(a.child?' is-child':'')}>{a.child?'Child':'Adult'}</span>
+                  {(()=>{const tk=ticketInfo(a.ticket);
+                    if(!tk) return <span className={'sess-name-type'+(a.child?' is-child':'')}>{a.child?'Child':'Adult'}</span>;
+                    return <span className="sess-ticket" title={tk.raw}>
+                      <span className={'sess-ticket-badge tk-'+tk.kind}>{tk.label}</span>
+                      {tk.detail&&<span className="sess-ticket-detail">{tk.detail}</span>}
+                    </span>;})()}
                 </button>
               </li>;
             })}
@@ -203,7 +208,7 @@ export default function SessionsPanel({onSearchName}){
     <div className="sess-att-bar">
       {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
       {!!snapshots.length?<div className="muted sess-att-asof">
-        Names snapshot {lastCap?formatAsOf(new Date(lastCap).toISOString()):'—'}
+        Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'—'}
         {' · '}{sum.people} name{sum.people===1?'':'s'} from {sum.ok} session{sum.ok===1?'':'s'}
         {sum.failed?` · ${sum.failed} failed`:''}
         {sum.partial?` · ${sum.partial} incomplete`:''}

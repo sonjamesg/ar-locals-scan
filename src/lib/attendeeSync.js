@@ -96,3 +96,19 @@ export function snapshotSummary(snapshots){
   }
   return {events:list.length, ok, failed, partial, people};
 }
+
+/**
+ * Classify a Bookwhen register Ticket cell for the names list.
+ * "LOCALS CARD Child - £5.00" → {kind:'locals', label:'Locals Card', detail:'Child · £5.00'}
+ * "LEISURE PASS Open Swim"    → {kind:'leisure', label:'Leisure Pass', detail:'Open Swim'}
+ */
+export function ticketInfo(ticket){
+  const raw=String(ticket||'').replace(/\s+/g,' ').trim();
+  if(!raw) return null;
+  const tidy=s=>s.replace(/^[\s\-–—:·]+|[\s\-–—:·]+$/g,'').replace(/\s+[-–—]\s+(?=£|\d)/g,' · ').trim();
+  const title=s=>s.replace(/\b([A-Z])([A-Z]+)\b/g,(m,a,b)=>a+b.toLowerCase());
+  let m;
+  if((m=/^locals?\s*card\b(.*)$/i.exec(raw))) return {kind:'locals',label:'Locals Card',detail:title(tidy(m[1]))||null,raw};
+  if((m=/^leisure\s*pass\b(.*)$/i.exec(raw))) return {kind:'leisure',label:'Leisure Pass',detail:title(tidy(m[1]))||null,raw};
+  return {kind:'other',label:title(tidy(raw)),detail:null,raw};
+}

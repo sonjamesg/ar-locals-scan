@@ -22,3 +22,26 @@ describe('session names v2',()=>{
   it('short muted disclaimer',()=>{assert.match(names,/Names from Bookwhen · not verified Locals/);assert.doesNotMatch(names,/Possible member/);});
   it('session time is larger with a clock icon',()=>{assert.match(sp,/sess-when"><IconClock\/>/);assert.match(css,/\.sess-when\{[^}]*font:700 14px/);});
 });
+
+import {ticketInfo} from './attendeeSync.js';
+import {parseAttendancesHtml} from '../../extension/parseAttendances.js';
+describe('ticket tags',()=>{
+  it('classifies Locals Card / Leisure Pass / other',()=>{
+    assert.deepEqual(ticketInfo('LOCALS CARD Baby (Under 12 Months)'),{kind:'locals',label:'Locals Card',detail:'Baby (Under 12 Months)',raw:'LOCALS CARD Baby (Under 12 Months)'});
+    assert.equal(ticketInfo('LOCALS CARD Child - £5.00').detail,'Child · £5.00');
+    assert.equal(ticketInfo('LEISURE PASS Open Swim').kind,'leisure');
+    assert.equal(ticketInfo('LEISURE PASS Open Swim').detail,'Open Swim');
+    assert.equal(ticketInfo('Adult drop-in').kind,'other');
+    assert.equal(ticketInfo(''),null);
+  });
+  it('sanitised real register fixture yields ticket text from the Ticket column (extension 1.2.1 already sends it)',()=>{
+    const fix=readFileSync(join(root,'extension/fixtures/attendances-bookwhen-2026.html'),'utf8');
+    const r=parseAttendancesHtml(fix,'https://atlanticreach.bookwhen.com/events/ev-test-20261110103000/attendances');
+    assert.ok(r.attendees.every(a=>a.ticket==='LEISURE PASS Open Swim'));
+  });
+  it('list shows ticket badge, falls back to Child/Adult when no ticket',()=>{
+    assert.match(names,/ticketInfo\(a\.ticket\)/);
+    assert.match(names,/'sess-ticket-badge tk-'\+tk\.kind/);
+    assert.match(names,/if\(!tk\) return <span className=\{'sess-name-type'/);
+  });
+});
