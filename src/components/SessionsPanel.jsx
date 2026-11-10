@@ -5,9 +5,10 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
+import {ExtDownloadLink,openExtHelp} from './ExtensionHelp.jsx';
 import {IconClock,IconExternalLink,IconUsers,IconUser} from './Icons.jsx';
 
 const POLL_MS=45_000;
@@ -96,6 +97,7 @@ export default function SessionsPanel({onSearchName}){
   const[snapshots,setSnapshots]=useState([]);
   const[syncBusy,setSyncBusy]=useState(false);
   const[syncErr,setSyncErr]=useState('');
+  const[extProblem,setExtProblem]=useState(null);
   const[syncProg,setSyncProg]=useState(null); // {i,total}
   const syncGen=useRef(0);
 
@@ -148,14 +150,9 @@ export default function SessionsPanel({onSearchName}){
 
   async function reSyncAttendees(){
     setSyncErr('');
-    if(!window.__arExt){
-      setSyncErr(`Extension not detected — install the Locals Card extension v${MIN_SYNC_EXT}+, keep Bookwhen signed in, then hard-refresh this desk.`);
-      return;
-    }
-    if(!extVersionAtLeast(window.__arExt, MIN_SYNC_EXT)){
-      setSyncErr(`Extension v${window.__arExt} is out of date — names need v${MIN_SYNC_EXT}. Download sonjamesg.github.io/ar-locals-scan/ar-locals-extension.zip, unzip over the old folder, press ↻ Reload on it in chrome://extensions, then hard-refresh this desk.`);
-      return;
-    }
+    const need=extNeed(window.__arExt);
+    setExtProblem(need);
+    if(need) return;
     if(!allowlist.length){
       setSyncErr('No activity sessions on now or coming up to sync.');
       return;
@@ -206,6 +203,16 @@ export default function SessionsPanel({onSearchName}){
     </div>
 
     <div className="sess-att-bar">
+      {extProblem&&<div className="ext-need" role="alert">
+        <div className="ext-need-txt"><b>{extProblem==='missing'?'Extension not installed':'Extension needs updating'}</b>
+          <span>{extProblem==='missing'
+            ?'Names come from Bookwhen through the Locals Card Chrome extension on this computer.'
+            :`This computer has v${window.__arExt}; names need v${MIN_SYNC_EXT} or newer.`}</span></div>
+        <div className="ext-need-acts">
+          <ExtDownloadLink className="btn primary sm" label="Download extension" onClick={()=>openExtHelp()}/>
+          <button type="button" className="btn ghost sm" onClick={openExtHelp}>How to install</button>
+        </div>
+      </div>}
       {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
       {!!snapshots.length?<div className="muted sess-att-asof">
         Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'—'}

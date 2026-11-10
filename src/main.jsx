@@ -5,6 +5,7 @@ import FeedbackPanel from './components/FeedbackPanel.jsx';
 import FeedbackPage from './components/FeedbackPage.jsx';
 import VisitsPanel from './components/VisitsPanel.jsx';
 import SessionsPanel from './components/SessionsPanel.jsx';
+import {ExtFooter} from './components/ExtensionHelp.jsx';
 import {safeDeskView} from './lib/memberNotFound.js';
 function App(){const inp=useRef();const[code,setCode]=useState('');const[res,setRes]=useState(null);const[msg,setMsg]=useState(null);const ALLOWED=['scan','lost','pending','queue','all','visits','feedback'];const[view,setView]=useState(()=>safeDeskView('scan',ALLOWED));const[prevView,setPrevView]=useState('scan');const viewHold=useRef('scan');const go=v=>{const next=safeDeskView(v,ALLOWED);if(viewHold.current!=='feedback'&&next==='feedback') setPrevView(viewHold.current);viewHold.current=next;setView(next);};const[fb,setFb]=useState(null); // null | 'compose'
  const[searchPrefill,setSearchPrefill]=useState('');
@@ -73,7 +74,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    {view==='visits'&&<VisitsPanel onMsg={setMsg}/>}
    {view==='feedback'&&<FeedbackPage onBack={()=>go(prevView||'scan')} onWrite={()=>setFb('compose')}/>}
    {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
-  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><button type="button" className="foot-fb" onClick={()=>{setFb(null);go('feedback');}}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
+  </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><ExtFooter/><span className="foot-sep" aria-hidden="true">·</span><button type="button" className="foot-fb" onClick={()=>{setFb(null);go('feedback');}}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
   <FeedbackPanel open={fb} onClose={()=>setFb(null)} onSeeAll={()=>go('feedback')}/>
 </div>;}
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register(import.meta.env.BASE_URL+'sw.js',{scope:import.meta.env.BASE_URL}).catch(()=>{}));

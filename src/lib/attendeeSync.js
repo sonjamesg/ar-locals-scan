@@ -112,3 +112,13 @@ export function ticketInfo(ticket){
   if((m=/^leisure\s*pass\b(.*)$/i.exec(raw))) return {kind:'leisure',label:'Leisure Pass',detail:title(tidy(m[1]))||null,raw};
   return {kind:'other',label:title(tidy(raw)),detail:null,raw};
 }
+
+/** Version of the extension zip published at ./ar-locals-extension.zip (keep in sync with extension/manifest.json). */
+export const EXT_LATEST='1.2.1';
+export const EXT_ZIP_PATH='ar-locals-extension.zip';
+export const CHROME_EXT_ADDRESS='chrome://extensions';
+/** 'missing' | 'outdated' | null for the Re-sync names requirement. */
+export function extNeed(version, min=MIN_SYNC_EXT){
+  if(!version) return 'missing';
+  return extVersionAtLeast(version,min)?null:'outdated';
+}

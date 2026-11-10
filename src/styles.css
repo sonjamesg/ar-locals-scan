@@ -488,3 +488,26 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-ticket-badge.tk-leisure{background:#e3f1f4;color:#0d5566;border:1px solid #b4d9e1}
 .sess-ticket-badge.tk-other{background:none;color:var(--mut);padding:0;font-weight:600;white-space:normal}
 .sess-ticket-detail{font:500 11px var(--font);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* Extension download + install guide */
+.foot-ext{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap}
+.foot-sep{opacity:.5}
+.ext-dl{display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.ext-dl svg{width:15px;height:15px}
+.ext-modal{max-width:560px;max-height:calc(100vh - 32px);overflow:auto}
+.ext-modal h3{margin:0;font-size:20px;color:var(--brand)}
+.ext-sub{margin:0;font-size:13px}
+.ext-steps{margin:4px 0 0;padding:0;list-style:none;counter-reset:ext;display:flex;flex-direction:column;gap:10px}
+.ext-steps li{counter-increment:ext;position:relative;padding:2px 0 2px 40px;font-size:14px;line-height:1.5;color:var(--txt)}
+.ext-steps li::before{content:counter(ext);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font:800 13px var(--font)}
+.ext-steps .btn{margin-left:6px;vertical-align:middle}
+.ext-addr{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ext-addr code{font:700 14px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef2f5;border:1px solid var(--line);border-radius:8px;padding:4px 10px;color:var(--brand)}
+.ext-addr .btn{display:inline-flex;align-items:center;gap:6px;margin-left:0}
+.ext-addr svg{width:14px;height:14px}
+.ext-update{font-size:13px;line-height:1.5;background:#f4f7f9;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--txt)}
+.ext-acts{display:flex;justify-content:flex-end;margin-top:4px}
+.ext-need{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--warn-bg);border:1px solid var(--warn-line);border-left:4px solid var(--warn);border-radius:10px;padding:10px 12px;margin:2px 0 6px}
+.ext-need-txt{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--txt);min-width:0;flex:1 1 200px}
+.ext-need-txt b{font-size:14px;color:#8a4300}
+.ext-need-acts{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:720px){.foot{flex-wrap:wrap;gap:8px}.foot-right{margin-left:0}}
