@@ -59,13 +59,6 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
   </div>
   <div className="scan-side">
    <SessionsPanel onSearchName={q=>{setSearchPrefill(q||'');setMsg(null);go('lost');}}/>
-   <aside className="help-panel panel"><h3>Quick help</h3><p className="muted">Simple steps for reception.</p>
-   <ul className="help-list">
-    <li><b>Scan</b>Check someone in at the desk.</li>
-    <li><b>Search Users</b>Find a member by name or email.</li>
-    <li><b>Pending / Lost</b>Issue or replace a card.</li>
-    <li><b>Need help?</b>Use Feedback beside Lock, or email james@atlanticreach.co.uk</li>
-   </ul></aside>
   </div></div>}
    {view==='lost'&&<LostPanel onMsg={setMsg} onDone={()=>setView('queue')} searchPrefill={searchPrefill}/>}
       {view==='pending'&&<PendingPanel onMsg={setMsg}/>}

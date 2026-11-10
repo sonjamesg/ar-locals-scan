@@ -45,3 +45,18 @@ describe('ticket tags',()=>{
     assert.match(names,/if\(!tk\) return <span className=\{'sess-name-type'/);
   });
 });
+
+describe('sessions panel v3 layout',()=>{
+  const main=readFileSync(join(root,'src/main.jsx'),'utf8');
+  it('Quick help removed',()=>{assert.doesNotMatch(main,/Quick help|help-panel/);assert.doesNotMatch(css,/\.help-panel|\.help-list/);});
+  it('no always-on Updated / Names not synced lines; warnings only when wrong',()=>{
+    assert.doesNotMatch(sp,/>Updated \{formatAsOf/);
+    assert.doesNotMatch(sp,/Names not synced/);
+    assert.match(sp,/\(showingStale\|\|\(asOf&&fresh\.stale\)\)&&<div className="sess-warn"/);
+    assert.match(sp,/\{sum\.ok>0&&<div className="muted sess-att-asof">/);
+  });
+  it('one short subtitle and a taller panel',()=>{
+    assert.match(sp,/<p className="muted sess-sub">Live Bookwhen schedule<\/p>/);
+    assert.match(css,/\.sess-panel\{max-height:min\(78vh,900px\)/);
+  });
+});

@@ -48,10 +48,9 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .btn:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
 .scan-layout{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
-.scan-card,.panel,.help-panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;box-shadow:none}
+.scan-card,.panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;box-shadow:none}
 /* Scan card sizes to its own content — never stretched by a long Sessions list */
 .scan-card{display:flex;flex-direction:column;height:auto;min-height:0;box-sizing:border-box;align-self:start}
-.help-panel{height:auto;box-sizing:border-box}
 /* Status fills the scan card only (equal-ish roomy idle), not the sessions column height */
 .scan-card>.status{flex:0 0 auto;align-self:stretch}
 .panel h2{margin:0 0 14px;font-size:22px;font-weight:700;color:var(--txt)}
@@ -66,11 +65,6 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .scan-input::placeholder,.big-input::placeholder{color:#5c6b75}
 .scan-input:focus,.big-input:focus,.add input:focus,.fb-ta:focus,.fb-name:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--focus)}
 .big-input{font-size:16px;padding:14px 16px}
-.help-panel h3{margin:0 0 6px;font-size:15px}
-.help-panel .muted{margin:0 0 8px}
-.help-list{list-style:none;display:grid;gap:10px;margin:8px 0 0;padding:0}
-.help-list li{background:#f4f7f8;border-radius:10px;padding:12px 14px;font-size:14px;color:#33454d;line-height:1.4}
-.help-list b{color:var(--txt);display:block;margin-bottom:2px}
 .link-panel{margin-top:18px}
 .link-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
 .link-head h2{margin:0 0 6px;font-size:20px}
@@ -286,7 +280,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
   .hdr .hdr-btn[aria-label="Staff feedback"]{min-width:40px;width:40px;padding:0}
   .main{padding:16px}
   .scan-layout{grid-template-columns:1fr;align-items:start}
-  .scan-card,.help-panel{height:auto;min-height:0}
+  .scan-card{height:auto;min-height:0}
   .scan-card>.status{flex:0 1 auto}
   .status{flex-direction:column;text-align:center}
   .am-stats{grid-template-columns:repeat(2,1fr)}
@@ -322,6 +316,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
   .sess-panel{max-height:none}
   .sess-scroll{overflow:visible}
 }
+/* (v3 max-height is set at the end, then re-cleared for this breakpoint) */
 
 .sess-att{border-top:1px solid var(--line);margin-top:8px;padding-top:4px}
 .sess-att-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -511,3 +506,14 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .ext-need-txt b{font-size:14px;color:#8a4300}
 .ext-need-acts{display:flex;gap:8px;flex-wrap:wrap}
 @media (max-width:720px){.foot{flex-wrap:wrap;gap:8px}.foot-right{margin-left:0}}
+/* Sessions panel v3: taller, compact header, ON NOW right under it */
+.sess-panel{max-height:min(78vh,900px);padding:14px 16px}
+.sess-head{flex-wrap:wrap}
+.sess-head{margin-bottom:8px;align-items:center}
+.sess-sub{margin:2px 0 0;font-size:12px;max-width:none}
+.sess-warn{font-size:12px;margin:0 0 6px;color:var(--warn);font-weight:600;flex:none}
+.sess-att-bar:empty{display:none}
+.sess-att-bar{padding:0 0 4px}
+.sess-att-bar .sess-att-asof{margin:0 0 4px}
+.sess-scroll .sess-label:first-child,.sess-scroll>.sess-label:first-of-type{margin-top:0}
+@media(max-width:900px){.sess-panel{max-height:none}}

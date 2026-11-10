@@ -186,7 +186,7 @@ export default function SessionsPanel({onSearchName}){
     <div className="sess-head">
       <div>
         <h3 className="sess-h"><IconClock className="sess-h-ico"/>Sessions now</h3>
-        <p className="muted sess-sub">Live Bookwhen schedule (London). Not whether the scanned member is booked. Closes early / removals drop off after refresh.</p>
+        <p className="muted sess-sub">Live Bookwhen schedule</p>
       </div>
       <div className="sess-head-acts">
         <button type="button" className="btn primary sm sess-resync" onClick={reSyncAttendees} disabled={syncBusy||!allowlist.length}
@@ -197,10 +197,9 @@ export default function SessionsPanel({onSearchName}){
       </div>
     </div>
 
-    <div className="sess-status-line muted">
-      {asOf?<>Updated {formatAsOf(asOf)}{fresh.stale?' · may be out of date':''}</>:'Not updated yet'}
-      {showingStale&&<> · showing last good list (refresh failed)</>}
-    </div>
+    {(showingStale||(asOf&&fresh.stale))&&<div className="sess-warn" role="status">
+      {showingStale?'Refresh failed — showing the last good list':'List may be out of date'}{asOf?` (updated ${formatHM(asOf)})`:''}
+    </div>}
 
     <div className="sess-att-bar">
       {extProblem&&<div className="ext-need" role="alert">
@@ -214,13 +213,10 @@ export default function SessionsPanel({onSearchName}){
         </div>
       </div>}
       {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
-      {!!snapshots.length?<div className="muted sess-att-asof">
-        Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'—'}
-        {' · '}{sum.people} name{sum.people===1?'':'s'} from {sum.ok} session{sum.ok===1?'':'s'}
-        {sum.failed?` · ${sum.failed} failed`:''}
-        {sum.partial?` · ${sum.partial} incomplete`:''}
-        {' · '}name only, not verified
-      </div>:!syncBusy&&!syncErr&&<div className="muted sess-att-asof">Names not synced — press Re-sync names to show who's booked under each session.</div>}
+      {sum.ok>0&&<div className="muted sess-att-asof">
+        Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'—'} · {sum.people} name{sum.people===1?'':'s'}
+        {sum.failed?` · ${sum.failed} failed`:''}{sum.partial?` · ${sum.partial} incomplete`:''}
+      </div>}
     </div>
 
     <div className="sess-scroll">
