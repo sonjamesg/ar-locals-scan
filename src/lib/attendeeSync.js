@@ -39,8 +39,8 @@ export function assertAllowlistedIds(requested, allowlist){
 /** Replace snapshots by event id — never append duplicates. */
 export function mergeSnapshots(prev, nextSnap){
   const map=new Map();
-  for(const s of prev||[]) if(s?.event_id) map.set(s.event_id,s);
-  if(nextSnap?.event_id) map.set(nextSnap.event_id, nextSnap);
+  for(const s of prev||[]) if(s?.event_id) map.set(s.event_id,namesOnly(s));
+  if(nextSnap?.event_id) map.set(nextSnap.event_id, namesOnly(nextSnap));
   return [...map.values()];
 }
 
@@ -97,21 +97,10 @@ export function snapshotSummary(snapshots){
   return {events:list.length, ok, failed, partial, people};
 }
 
-/**
- * Classify a Bookwhen register Ticket cell for the names list.
- * "LOCALS CARD Child - £5.00" → {kind:'locals', label:'Locals Card', detail:'Child · £5.00'}
- * "LEISURE PASS Open Swim"    → {kind:'leisure', label:'Leisure Pass', detail:'Open Swim'}
- */
-export function ticketInfo(ticket){
-  const raw=String(ticket||'').replace(/\s+/g,' ').trim();
-  if(!raw) return null;
-  const tidy=s=>s.replace(/^[\s\-–—:·]+|[\s\-–—:·]+$/g,'').replace(/\s+[-–—]\s+(?=£|\d)/g,' · ').trim();
-  const title=s=>s.replace(/\b([A-Z])([A-Z]+)\b/g,(m,a,b)=>a+b.toLowerCase());
-  let m;
-  if((m=/^locals?\s*card\b(.*)$/i.exec(raw))) return {kind:'locals',label:'Locals Card',detail:title(tidy(m[1]))||null,raw};
-  if((m=/^leisure\s*pass\b(.*)$/i.exec(raw))) return {kind:'leisure',label:'Leisure Pass',detail:title(tidy(m[1]))||null,raw};
-  return {kind:'other',label:title(tidy(raw)),detail:null,raw};
-}
+/** Bookwhen ticket choice is trust-based (anyone can pick "LOCALS CARD"), so the desk keeps names only. */
+const TICKET_KEYS=['ticket','ticket_type','ticket_name','price'];
+export function namesOnly(snap){if(!snap||!Array.isArray(snap.attendees))return snap;
+  return {...snap,attendees:snap.attendees.map(a=>{if(!a||typeof a!=='object')return a;const o={...a};for(const k of TICKET_KEYS)delete o[k];return o;})};}
 
 /** Version of the extension zip published at ./ar-locals-extension.zip (keep in sync with extension/manifest.json). */
 export const EXT_LATEST='1.2.2';

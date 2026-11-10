@@ -5,7 +5,7 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,ticketInfo,MIN_SYNC_EXT,extVersionAtLeast,extNeed,extBlock,EXT_LATEST
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,MIN_SYNC_EXT,extVersionAtLeast,extNeed,extBlock,EXT_LATEST
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync,detectExt} from './Members.jsx';
 import {ExtDownloadLink,openExtHelp,ExtWarning} from './ExtensionHelp.jsx';
@@ -46,12 +46,6 @@ function SessionNames({group, onSearchName}){
                   title="Search members for this name — confirm before linking a card">
                   <span className="sess-name-ico" aria-hidden="true"><IconUser/></span>
                   <span className="sess-name-txt">{a.name}</span>
-                  {(()=>{const tk=ticketInfo(a.ticket);
-                    if(!tk) return <span className={'sess-name-type'+(a.child?' is-child':'')}>{a.child?'Child':'Adult'}</span>;
-                    return <span className="sess-ticket" title={tk.raw}>
-                      <span className={'sess-ticket-badge tk-'+tk.kind}>{tk.label}</span>
-                      {tk.detail&&<span className="sess-ticket-detail">{tk.detail}</span>}
-                    </span>;})()}
                 </button>
               </li>;
             })}
