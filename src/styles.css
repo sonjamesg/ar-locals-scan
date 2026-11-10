@@ -463,3 +463,22 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .sess-att-bar{padding:0 2px 6px}
 .sess-att-bar .md-err{margin:2px 0 4px;font-size:13px}
 .sess-att-bar .sess-att-asof{font-size:12px}
+/* Session time + names v2: readable time, clean vertical name list */
+.sess-when{display:flex;align-items:center;gap:6px;font:700 14px var(--font);color:var(--txt);margin-top:4px}
+.sess-when svg{width:15px;height:15px;color:var(--brand);flex:none}
+.sess-names-toggle{font:700 13px var(--font)}
+.sess-names-count{display:inline-flex;align-items:center;gap:6px}
+.sess-names-count svg{width:15px;height:15px;color:var(--brand)}
+.sess-names-right{display:inline-flex;align-items:center;gap:8px}
+.sess-synced{font:600 13px var(--font);color:var(--mut)}
+.sess-names-disclaimer{margin:6px 0 0;font-size:12px;color:var(--mut);font-weight:500}
+.sess-names-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;flex-wrap:nowrap;gap:0;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.sess-names-list li+li{border-top:1px solid var(--line)}
+.sess-name-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:0;border-radius:0;padding:9px 12px;font:600 15px var(--font);color:var(--txt);cursor:pointer}
+.sess-name-btn:hover{background:#f2f6f9;border:0}
+.sess-name-btn:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+.sess-name-ico{flex:none;width:26px;height:26px;border-radius:8px;background:#e8eef3;color:var(--brand);display:grid;place-items:center}
+.sess-name-ico svg{width:14px;height:14px}
+.sess-name-txt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sess-name-type{flex:none;margin-left:auto;font:600 12px var(--font);color:var(--mut)}
+.sess-name-type.is-child{color:var(--brand)}

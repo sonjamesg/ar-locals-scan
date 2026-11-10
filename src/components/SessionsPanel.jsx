@@ -1,14 +1,14 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {sb} from '../lib.js';
 import {
-  capacityLabel,filterActivitySessions,formatAsOf,formatSessionRange,partitionSessions,reconcileSessions,
+  capacityLabel,filterActivitySessions,formatAsOf,formatHM,formatSessionRange,partitionSessions,reconcileSessions,
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
   syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,MIN_SYNC_EXT,extVersionAtLeast
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
-import {IconClock,IconExternalLink,IconUsers} from './Icons.jsx';
+import {IconClock,IconExternalLink,IconUsers,IconUser} from './Icons.jsx';
 
 const POLL_MS=45_000;
 const UPCOMING_PREVIEW=3;
@@ -26,29 +26,30 @@ function SessionNames({group, onSearchName}){
     </div>;
   }
   const n=(group.attendees||[]).length;
-  const when=group.captured_at?formatAsOf(group.captured_at):'';
+  const when=group.captured_at?formatHM(group.captured_at):'';
   return <div className="sess-names">
     <button type="button" className="sess-names-toggle" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>
-      <span>Names ({n}){when?` · ${when}`:''}{group.incomplete?' · incomplete':''}</span>
-      <span aria-hidden="true">{open?'▾':'▸'}</span>
+      <span className="sess-names-count"><IconUsers/>{n} name{n===1?'':'s'}{group.incomplete?' · incomplete':''}</span>
+      <span className="sess-names-right">{when&&<span className="sess-synced">Synced {when}</span>}<span aria-hidden="true">{open?'▾':'▸'}</span></span>
     </button>
     {open&&<>
-      <p className="sess-names-disclaimer">From Bookwhen — Possible member (name only), not a verified Locals cardholder.</p>
+      <p className="sess-names-disclaimer">Names from Bookwhen · not verified Locals</p>
       {n===0
         ? <div className="muted sess-names-empty">No names on this register snapshot</div>
-        : <ul className="sess-names-list">
+        : <ol className="sess-names-list">
             {group.attendees.map((a,i)=>{
               const q=searchQueryFromAttendeeName(a.name);
               return <li key={(a.booking_id||'')+':'+a.name+':'+i}>
                 <button type="button" className="sess-name-btn" disabled={!q}
                   onClick={()=>onSearchName&&onSearchName(q)}
-                  title="Opens Search Users with this name — confirm before linking a card">
-                  {a.name}
+                  title="Search members for this name — confirm before linking a card">
+                  <span className="sess-name-ico" aria-hidden="true"><IconUser/></span>
+                  <span className="sess-name-txt">{a.name}</span>
+                  <span className={'sess-name-type'+(a.child?' is-child':'')}>{a.child?'Child':'Adult'}</span>
                 </button>
-                {a.child?<span className="muted"> child</span>:null}
               </li>;
             })}
-          </ul>}
+          </ol>}
     </>}
   </div>;
 }
@@ -61,7 +62,7 @@ function SessionRow({s, nameGroup, onSearchName}){
     <div className="sess-item-top">
       <div className="sess-main">
         <div className="sess-title">{s.title}</div>
-        <div className="sess-when">{formatSessionRange(s.start_at,s.end_at)}</div>
+        <div className="sess-when"><IconClock/><span>{formatSessionRange(s.start_at,s.end_at)}</span></div>
         <div className="sess-meta">
           {cap&&<span className="sess-cap">{cap}</span>}
           {(s.tags||[]).slice(0,3).map(t=><span key={t} className="sess-tag">{t}</span>)}

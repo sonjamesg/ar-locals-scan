@@ -79,6 +79,14 @@ export function formatSessionRange(startAt, endAt){
   return `${a} – ${b}`;
 }
 
+/** "09:45" — synced-at label without seconds. */
+export function formatHM(iso){
+  if(!iso) return '';
+  const d=new Date(iso);
+  if(Number.isNaN(d.getTime())) return '';
+  return d.toLocaleTimeString('en-GB',{timeZone:SESSION_TZ,hour:'2-digit',minute:'2-digit'});
+}
+
 export function formatAsOf(iso){
   if(!iso) return '';
   const d=new Date(iso);
