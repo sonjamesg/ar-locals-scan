@@ -573,3 +573,22 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
   .pend-acts{justify-content:flex-start}.pend-link{order:-1}
   .pend-name-row{flex-wrap:wrap}
 }
+/* Pending cards v2.1: fixed columns so chips + actions align across rows */
+.pend-row{grid-template-columns:minmax(0,1fr) 222px 418px}
+.pend-chips{grid-template-columns:118px 96px;justify-items:start}
+.pend-acts{display:grid;grid-template-columns:110px 128px 128px 34px;gap:6px;justify-items:stretch}
+.pend-slot{display:flex;min-width:0}
+.pend-slot .pend-sec{white-space:nowrap;width:100%;justify-content:center;box-sizing:border-box}
+.pend-acts a.pend-sec,.pend-acts a.pend-sec:hover,.pend-acts a.pend-sec:focus{text-decoration:none}
+.pend-sec-off{opacity:.45;cursor:not-allowed;pointer-events:auto}
+.pend-link{justify-content:center}
+@media(max-width:1100px){
+  .pend-row{grid-template-columns:minmax(0,1fr) 222px}
+  .pend-acts{justify-content:end}
+}
+@media(max-width:620px){
+  .pend-row{grid-template-columns:minmax(0,1fr)}
+  .pend-acts{display:flex;flex-wrap:wrap;justify-content:flex-start}
+  .pend-slot:empty,.pend-slot:has(.pend-sec-off){display:none}
+  .pend-slot .pend-sec{width:auto}
+}

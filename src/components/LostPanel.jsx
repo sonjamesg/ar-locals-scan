@@ -47,8 +47,8 @@ export function PendingRow({h,onLink,onClear}){const n=nameOf(h);const shown=n||
   </div>
   <div className="pend-chips"><span className="hit-slot hit-slot-status"><StatusChip h={h}/></span><span className="hit-slot hit-slot-renew"><RenewChip h={h}/></span></div>
   <div className="pend-acts">
-   {t&&<a className="btn ghost pend-sec" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Bookwhen <IconExternalLink width={13} height={13}/></a>}
-   {h.bookwhen_customer_id&&<a className="btn ghost pend-sec" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer" title="Open Bookwhen memberships">Memberships <IconExternalLink width={13} height={13}/></a>}
+   <span className="pend-slot pend-slot-bw">{t&&<a className="btn ghost pend-sec" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Bookwhen <IconExternalLink width={13} height={13}/></a>}</span>
+   <span className="pend-slot pend-slot-ms">{h.bookwhen_customer_id?<a className="btn ghost pend-sec" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer" title="Open Bookwhen memberships">Memberships <IconExternalLink width={13} height={13}/></a>:<span className="btn ghost pend-sec pend-sec-off" aria-disabled="true" title="No Bookwhen membership link yet — run Check user">Memberships</span>}</span>
    <button className="btn primary pend-link" onClick={onLink}><IconCardLink width={16} height={16}/> Link card</button>
    <button className="pend-x" title="Remove from list" aria-label={`Remove ${shown} from pending cards`} onClick={onClear}><IconX width={16} height={16}/></button>
   </div>

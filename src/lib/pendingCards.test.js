@@ -30,3 +30,12 @@ describe('Pending cards v2',()=>{
   });
   it('friendly empty state',()=>{assert.match(src,/function PendingEmpty[^]*All caught up/);});
 });
+describe('Pending cards v2.1 alignment',()=>{
+  it('fixed grid columns and placeholder slots',()=>{
+    assert.match(css,/\.pend-row\{grid-template-columns:minmax\(0,1fr\) 222px 418px\}/);
+    assert.match(css,/\.pend-acts\{display:grid;grid-template-columns:110px 128px 128px 34px/);
+    assert.match(pend,/<span className="hit-slot hit-slot-renew"><RenewChip h=\{h\}\/><\/span>/);
+    assert.match(pend,/pend-slot-ms">\{h\.bookwhen_customer_id\?<a[^]*:<span className="btn ghost pend-sec pend-sec-off" aria-disabled="true"/);
+  });
+  it('no underline on secondary links',()=>{assert.match(css,/\.pend-acts a\.pend-sec,\.pend-acts a\.pend-sec:hover,\.pend-acts a\.pend-sec:focus\{text-decoration:none\}/);});
+});
