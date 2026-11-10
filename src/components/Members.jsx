@@ -78,7 +78,21 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',empt
   <ul className="hits">{busy&&<li className="muted">Searching…</li>}
    {empty&&<li className="muted">{emptyText}</li>}
    {hits.map((h,i)=><li key={i} className="hit-row"><button className="hit hit-grid" onClick={()=>onPick(h)}><MemberRowCells h={h} newBadge={<NewBadge h={h}/>}/></button><OpenBtn h={h}/></li>)}</ul>
+  {empty&&<BwLookup q={q}/>}
   {empty&&emptyGuide&&<div className="not-found-guide">{emptyGuide}</div>}
+ </div>;}
+/** Bookwhen Locals Card customers list, filtered by free text (search_text = the param the extension's Check-by-email uses). */
+export const BW_LOCALS_LIST='https://atlanticreach.bookwhen.com/customers/list?filter_items%5Bcustomer_group%5D%5Bselected_groups%5D%5B%5D=2qx0sob92cv9';
+export const bwLocalsLookupUrl=q=>`${BW_LOCALS_LIST}&search_text=${encodeURIComponent(String(q||'').trim())}`;
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true;}catch{try{const el=document.createElement('textarea');el.value=t;document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();return ok;}catch{return false;}}}
+/** Shown when the desk search finds nobody: open Bookwhen's Locals list for the typed text (and copy it as a fallback). */
+export function BwLookup({q}){const t=String(q||'').trim();const[copied,setCopied]=useState(false);useEffect(()=>setCopied(false),[t]);if(t.length<2)return null;
+ const what=t.includes('@')?'Email':'Search text';
+ return <div className="bw-lookup">
+  <a className="btn primary bw-lookup-btn" href={bwLocalsLookupUrl(t)} target="_blank" rel="noopener noreferrer" onClick={()=>{copyText(t).then(setCopied);}} title={`Open Bookwhen Locals Card customers matching "${t}"`}>
+   <IconSearch/> Search Bookwhen for a Locals membership <IconExternalLink width={14} height={14}/></a>
+  <p className="bw-lookup-help">Not found on the desk. Check Bookwhen — if nothing shows there, they don't have a Locals Card.</p>
+  {copied&&<p className="bw-lookup-copied" role="status">{what} copied — paste into Bookwhen search if it isn't filled.</p>}
  </div>;}
 /** Status tile text + tone for member detail. */
 function statusOf(h){

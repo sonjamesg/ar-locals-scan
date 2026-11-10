@@ -597,3 +597,9 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .ext-warn-x{position:absolute;top:8px;right:8px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--bad);border-radius:8px;cursor:pointer}
 .ext-warn-x:hover{background:#f7d5d1}
 .ext-warn-x:focus-visible,.ext-warn-link:focus-visible{outline:3px solid #9fb6cf;outline-offset:2px}
+/* No-results: look the person up in Bookwhen's Locals list */
+.bw-lookup{margin:6px 0 12px;padding:14px 16px;border:1.5px dashed var(--line);border-radius:12px;background:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.bw-lookup-btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 16px;font-size:15px;font-weight:700;border-radius:10px;text-decoration:none;margin:0}
+.bw-lookup-btn:focus-visible{outline:3px solid #9fb6cf;outline-offset:2px}
+.bw-lookup-help{margin:0;color:var(--mut);font-size:13.5px}
+.bw-lookup-copied{margin:0;color:var(--ok);font-size:12.5px;font-weight:600}
