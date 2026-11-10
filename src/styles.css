@@ -339,14 +339,12 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .hit-grid .hit-name-row{flex-wrap:nowrap;min-width:0}
 .hit-grid .hit-name,.hit-grid .hit-email{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hit-col{display:flex;align-items:center;min-width:0}
-.hit-col-new{justify-content:flex-start}
-.hit-col-new .new-badge{margin:0}
 .hit-col-right{display:grid;grid-template-columns:120px 116px 96px;gap:8px;justify-content:end;justify-items:end;align-items:center;text-align:right}
 .hit-slot{display:inline-flex;align-items:center;justify-content:flex-end;min-width:0}
 .hit-grid .amc,.hit-grid .card-link-badge{white-space:nowrap}
 @media(max-width:1100px){
-  .hit.hit-grid{grid-template-columns:minmax(0,1fr) 60px;grid-template-areas:"info new" "right right";row-gap:8px}
-  .hit-grid>.hit-info{grid-area:info}.hit-grid>.hit-col-new{grid-area:new}
+  .hit.hit-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"info" "right";row-gap:8px}
+  .hit-grid>.hit-info{grid-area:info}
   .hit-grid>.hit-col-right{grid-area:right;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px}
   .hit-col-right .hit-slot:empty{display:none}
 }
@@ -528,3 +526,14 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .amc-st.bw-none{background:#f1f4f6;color:var(--mut);border-color:var(--line)}
 .hit-unchecked,.chip-unchecked{display:inline-block;font:700 10px var(--font);letter-spacing:.04em;text-transform:uppercase;color:#8a4300;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:999px;padding:1px 7px;margin-right:6px;vertical-align:1px}
 .chip-unchecked{font-size:11px;padding:3px 9px}
+/* Row layout v3: NEW inline before the name; no NEW column; card chips share one width */
+.hit.hit-grid{grid-template-columns:minmax(0,1fr) auto}
+.hit-grid .hit-name-row{gap:6px}
+.new-inline{flex:none;font-size:10px;padding:2px 7px;line-height:1.2;background:var(--brand);color:#fff;border-color:var(--brand);letter-spacing:.06em}
+.hit-col-right{grid-template-columns:118px 132px 96px}
+.hit-slot-card .card-link-badge{min-width:118px;box-sizing:border-box;text-align:center}
+@media(max-width:1100px){
+  .hit.hit-grid{grid-template-columns:minmax(0,1fr)}
+  .hit-slot-card .card-link-badge{min-width:0}
+}
+.hit-name-row .new-inline{margin:0}

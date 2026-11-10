@@ -26,10 +26,14 @@ describe('list row card badge',()=>{
 describe('aligned member list rows v2',()=>{
   const all=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../components/AllMembersPanel.jsx'),'utf8');
   const css=readFileSync(join(dirname(fileURLToPath(import.meta.url)),'../styles.css'),'utf8');
-  it('name | NEW | right group (status, card, renewal) in that order',()=>{
+  it('[NEW] name inline | right group (status, card, renewal); no separate NEW column',()=>{
     const cells=members.slice(members.indexOf('export function MemberRowCells'));
-    const iNew=cells.indexOf('hit-col-new'),iS=cells.indexOf('hit-slot-status'),iC=cells.indexOf('hit-slot-card'),iR=cells.indexOf('hit-slot-renew');
-    assert.ok(iNew>0&&iNew<iS&&iS<iC&&iC<iR);
+    const iInfo=cells.indexOf('<MemberInfo h={h} badge={false} newBadge={newBadge}/>'),iS=cells.indexOf('hit-slot-status'),iC=cells.indexOf('hit-slot-card'),iR=cells.indexOf('hit-slot-renew');
+    assert.ok(iInfo>0&&iInfo<iS&&iS<iC&&iC<iR);
+    assert.doesNotMatch(cells.slice(0,cells.indexOf('export const NewBadge')),/hit-col-new/);
+    assert.match(members,/<div className="hit-name-row">\{newBadge\}<span className="hit-name"/);
+    assert.match(css,/\.hit-col-right\{grid-template-columns:118px 132px 96px\}/);
+    assert.match(css,/\.hit-slot-card \.card-link-badge\{min-width:118px/);
     assert.match(members,/className="hit hit-grid"/);
     assert.match(all,/className="hit hit-grid"/);
     assert.match(all,/NewBadge/);

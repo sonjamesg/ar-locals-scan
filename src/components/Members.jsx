@@ -29,20 +29,19 @@ export function RenewChip({h}){if(!h.bw_checked_at||h.cancelled_at||!h.bw_renews
  return <span className="amc amc-renew" title="Renews (Bookwhen)">↻ {d}</span>;}
 /** Compact chips for simple lists (e.g. Pending cards). */
 export function BwChips({h}){const s=StatusChip({h}),r=RenewChip({h});if(!s&&!r)return null;return <span className="am-chips">{s}{r}</span>;}
-export function MemberInfo({h,badge=true}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
- <div className="hit-name-row"><span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
+export function MemberInfo({h,badge=true,newBadge=null}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
+ <div className="hit-name-row">{newBadge}<span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
  {n&&h.email&&<span className="hit-email" title={h.email}>{h.email}</span>}
  <span className="hit-meta">{isUnchecked(h)&&<span className="hit-unchecked" title="Not checked in Bookwhen yet — run Check user">Unchecked</span>}{h._partial&&<span className="hit-partial" title={`Matches ${h._matched} of ${h._total} words`}>partial match</span>}{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
-/** Aligned list row: name | NEW | (right) status · card · renewal. Empty cells keep columns from shifting. */
+/** Aligned list row: [NEW] name | (right) status · card · renewal. NEW sits inline before the name (no separate column). */
 export function MemberRowCells({h,newBadge=null,status}){return <>
- <MemberInfo h={h} badge={false}/>
- <span className="hit-col hit-col-new">{newBadge}</span>
+ <MemberInfo h={h} badge={false} newBadge={newBadge}/>
  <span className="hit-col hit-col-right">
   <span className="hit-slot hit-slot-status">{status===undefined?<StatusChip h={h}/>:status}</span>
   <span className="hit-slot hit-slot-card"><CardLinkBadge h={h}/></span>
   <span className="hit-slot hit-slot-renew"><RenewChip h={h}/></span>
  </span></>;}
-export const NewBadge=({h})=>isNew(h)?<span className="amc new-badge" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null;
+export const NewBadge=({h})=>isNew(h)?<span className="amc new-badge new-inline" title={'Joined '+new Date(h.joined_at).toLocaleDateString('en-GB')}>NEW</span>:null;
 export function Confirm({title,children,onYes,onNo,busy}){return <div className="modal-bg"><div className="modal" role="dialog">
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
 /** Member list cache for forgiving client-side search (~1k rows). Refreshes when older than 60s. */
