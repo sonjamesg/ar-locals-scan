@@ -3,11 +3,23 @@ import {smartSearch,scoreMember} from './smartSearch.js';
 export const MONTH=30*864e5;
 export const isNew=r=>!!r.joined_at&&Date.now()-new Date(r.joined_at).getTime()<MONTH;
 export const isCancelled=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';
+/**
+ * Unchecked = no successful Bookwhen subscription check yet.
+ * A successful "Check user" (save_bw_check) that finds the Locals subscription stores bw_lcl and/or
+ * bw_renews_at; one that finds none stores a non-ACTIVE status (e.g. NONE) — both count as checked.
+ * Purchase-email members get bw_status='ACTIVE' (they paid) but no LCL/renewal → still unchecked.
+ * (Older ingests also stamped bw_checked_at at ingest; that is not a real check, so it is ignored here.)
+ */
+export const isUnchecked=r=>!!r&&!isCancelled(r)&&!r.bw_lcl&&!r.bw_renews_at&&(!r.bw_status||r.bw_status==='ACTIVE'||!r.bw_checked_at);
+/** Paid via the Bookwhen purchase-email ingest, not yet checked: ACTIVE + Unchecked tag. */
+export const isPurchaseUnchecked=r=>isUnchecked(r)&&r.bw_status==='ACTIVE';
+export const isActiveChecked=r=>!!r&&!isCancelled(r)&&r.bw_status==='ACTIVE';
 /** Usable linked card = non-empty barcode and not marked lost. Pending/ACTIVE alone is not linked. */
 export const isLinked=r=>!!(r&&String(r.card_barcode||'').trim())&&!r.lost_card_at;
 /** List-row badge: Card linked / Card unlinked from real barcode (not membership status). */
 export function cardLinkStatus(r){
   if(isLinked(r)) return {linked:true, label:'Card linked', tone:'ok'};
+  if(r&&r.pending_card&&!r.cancelled_at) return {linked:false, pending:true, label:'Card pending', tone:'warn'};
   return {linked:false, label:'Card unlinked', tone:'warn'};
 }
 export function cardCounts(rows){
@@ -20,7 +32,8 @@ export function matchStatus(r,sf){
   if(sf==='all'||!sf) return true;
   if(sf==='new') return isNew(r);
   if(sf==='cancelled') return isCancelled(r);
-  if(sf==='active') return !isCancelled(r)&&r.bw_status==='ACTIVE';
+  if(sf==='active') return isActiveChecked(r);
+  if(sf==='unchecked') return isUnchecked(r);
   return true;
 }
 export function matchCard(r,cf){

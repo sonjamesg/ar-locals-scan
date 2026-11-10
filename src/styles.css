@@ -521,3 +521,10 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .ext-soft{font-size:12px;color:var(--mut);margin:0 0 4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .ext-soft .ext-soft-link{font-size:12px;padding:0}
 .ext-soft .ext-soft-link svg{width:13px;height:13px}
+.amc-st.bw-unchecked{background:var(--warn-bg);color:#8a4300;border-color:var(--warn-line)}
+.md-check-now{border-color:var(--warn-line);background:var(--warn-bg)}
+.md-check-now .md-adv-note{color:#6b3a00}
+.status .st-hint.unchecked{color:#8a4300;font-weight:700}
+.amc-st.bw-none{background:#f1f4f6;color:var(--mut);border-color:var(--line)}
+.hit-unchecked,.chip-unchecked{display:inline-block;font:700 10px var(--font);letter-spacing:.04em;text-transform:uppercase;color:#8a4300;background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:999px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+.chip-unchecked{font-size:11px;padding:3px 9px}

@@ -1,6 +1,6 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
 import './styles.css';import {sb} from './lib.js';
-import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label} from './components/Members.jsx';import AllMembersPanel from './components/AllMembersPanel.jsx';
+import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label,memberById} from './components/Members.jsx';import {isUnchecked} from './lib/memberFilters.js';import AllMembersPanel from './components/AllMembersPanel.jsx';
 import FeedbackPanel from './components/FeedbackPanel.jsx';
 import FeedbackPage from './components/FeedbackPage.jsx';
 import VisitsPanel from './components/VisitsPanel.jsx';
@@ -26,6 +26,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
   if(!row){setRes({status:'unknown',barcode:b});return;}
   const visit={recorded:!!row.recorded,suppressed:!!row.suppressed,reason:row.reason,visit_id:row.visit_id,visited_at:row.visited_at,last_counted_at:row.last_counted_at,visits_today:row.visits_today,next_eligible_at:row.next_eligible_at};
   setRes({status:row.status||'unknown',first_name:row.first_name,last_name:row.last_name,membership_ends_at:row.membership_ends_at,member_id:row.member_id,barcode:b,visit});
+  if(row.member_id&&row.status==='valid')memberById(row.member_id).then(m=>{if(m&&isUnchecked(m))setRes(r=>r&&r.member_id===row.member_id&&r.barcode===b?{...r,unchecked:true}:r);});
   if(row.status==='valid'&&row.recorded) setMsg({t:'Visit recorded'});
   else if(row.status==='valid'&&row.suppressed) setMsg({t:'Already checked in — another visit counts after 3 hours'});
   if(row.status&&row.status!=='unknown')focus();}

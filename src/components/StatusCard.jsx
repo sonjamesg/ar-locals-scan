@@ -27,6 +27,7 @@ export default function StatusCard({res}){
         <>
           <div className="st-name">{res.first_name} {res.last_name}</div>
           <div className="st-meta">{res.membership_ends_at?<>{left(res.membership_ends_at)} <span>· {meta.tone==='expired'?'ended':'until'} {fmt(res.membership_ends_at)}</span></>:'No expiry set'}</div>
+          {meta.tone==='valid'&&res.unchecked&&<div className="st-hint unchecked">Unchecked in Bookwhen — run Check user (Search Users) to confirm renewal date</div>}
           {meta.tone==='expired'&&<div className="st-hint">Please renew via Bookwhen — £10 / 12 months</div>}
           {meta.tone==='lost'&&<div className="st-hint">Do not accept this card — use Lost cards to issue a replacement</div>}
           {meta.tone==='valid'&&v?.recorded&&<div className="st-hint ok">Visit recorded · {formatVisitWhen(v.visited_at)} · today {v.visits_today}</div>}

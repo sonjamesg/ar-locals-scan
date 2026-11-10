@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';import {sb} from '../lib.js';
 import {IconSearch,IconArrowLeft,IconUser,IconPencil,IconCalendar,IconSettings,IconExternalLink} from './Icons.jsx';
 import {renewalInfo} from '../lib/renewal.js';
 import {smartSearch} from '../lib/smartSearch.js';
-import {cardLinkStatus,isNew} from '../lib/memberFilters.js';
+import {cardLinkStatus,isNew,isUnchecked,isPurchaseUnchecked} from '../lib/memberFilters.js';
 export const bwUrl=id=>`https://atlanticreach.bookwhen.com/customers/${encodeURIComponent(id)}/subscriptions`;
 const ph=v=>!v||!v.trim()||/^\(.*\)$/.test(v.trim())||v.trim()==='-';
 export const nameOf=h=>{const n=[h.first_name,h.last_name].filter(x=>!ph(x)).join(' ');return n||null;};
@@ -14,15 +14,17 @@ export function OpenBtn({h}){const t=bwTerm(h);if(!t&&!h.bookwhen_customer_id)re
  {t&&<a className="btn ghost bw-btn" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen ↗</a>}
  {h.bookwhen_customer_id&&<a className="btn primary bw-btn" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships ↗</a>}</div>;}
 export const ago=t=>{const m=Math.round((Date.now()-new Date(t))/6e4);return m<1?'just now':m<60?`${m} min ago`:m<1440?`${Math.round(m/60)} h ago`:new Date(t).toLocaleDateString('en-GB');};
-export function CardLinkBadge({h}){const s=cardLinkStatus(h);return <span className={'card-link-badge '+(s.linked?'card-linked':'card-unlinked')} title={s.linked?'Has an active Locals card barcode':'No usable Locals card linked yet'}>{s.label}</span>;}
+export function CardLinkBadge({h}){const s=cardLinkStatus(h);return <span className={'card-link-badge '+(s.linked?'card-linked':'card-unlinked')} title={s.linked?'Has an active Locals card barcode':s.pending?'Paid member — needs a Locals card linked':'No usable Locals card linked yet'}>{s.label}</span>;}
 /** Row status chip: Cancelled > Pending card (unchecked) > Bookwhen status. LCL ids stay on member detail. */
 export function StatusChip({h}){
  if(h.cancelled_at)return <span className="amc amc-st bw-cancel" title={'Cancelled '+new Date(h.cancelled_at).toLocaleDateString('en-GB')}><i/>Cancelled</span>;
+ if(isPurchaseUnchecked(h))return <span className="amc amc-st bw-ok" title="Paid — from Bookwhen purchase email (not yet checked in Bookwhen)"><i/>ACTIVE</span>;
+ if(isUnchecked(h))return <span className="amc amc-st bw-none" title="No Bookwhen check yet"><i/>NOT CHECKED</span>;
  if(h.bw_checked_at)return <span className={'amc amc-st '+(h.bw_status==='ACTIVE'?'bw-ok':'bw-bad')} title={'Checked '+ago(h.bw_checked_at)}><i/>{h.bw_status||'?'}</span>;
  if(h.pending_card)return <span className="amc amc-pend">PENDING CARD</span>;
  return null;}
 /** Bookwhen renewal date chip (no trailing last-checked date in rows). */
-export function RenewChip({h}){if(!h.bw_checked_at||h.cancelled_at||!h.bw_renews_at)return null;
+export function RenewChip({h}){if(!h.bw_checked_at||h.cancelled_at||!h.bw_renews_at||isUnchecked(h))return null;
  const d=new Date(h.bw_renews_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
  return <span className="amc amc-renew" title="Renews (Bookwhen)">↻ {d}</span>;}
 /** Compact chips for simple lists (e.g. Pending cards). */
@@ -30,7 +32,7 @@ export function BwChips({h}){const s=StatusChip({h}),r=RenewChip({h});if(!s&&!r)
 export function MemberInfo({h,badge=true}){const n=nameOf(h);const shown=n||h.email||'(no name)';return <div className="hit-info">
  <div className="hit-name-row"><span className="hit-name" title={shown}>{shown}</span>{badge&&<CardLinkBadge h={h}/>}</div>
  {n&&h.email&&<span className="hit-email" title={h.email}>{h.email}</span>}
- <span className="hit-meta">{h._partial&&<span className="hit-partial" title={`Matches ${h._matched} of ${h._total} words`}>partial match</span>}{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
+ <span className="hit-meta">{isUnchecked(h)&&<span className="hit-unchecked" title="Not checked in Bookwhen yet — run Check user">Unchecked</span>}{h._partial&&<span className="hit-partial" title={`Matches ${h._matched} of ${h._total} words`}>partial match</span>}{[h.membership_ends_at&&`ends ${h.membership_ends_at}`,h.lost_card_at&&'⚠ card lost',h.cancelled_at&&'✕ cancelled'].filter(Boolean).join(' · ')}</span></div>;}
 /** Aligned list row: name | NEW | (right) status · card · renewal. Empty cells keep columns from shifting. */
 export function MemberRowCells({h,newBadge=null,status}){return <>
  <MemberInfo h={h} badge={false}/>
@@ -45,6 +47,8 @@ export function Confirm({title,children,onYes,onNo,busy}){return <div className=
  <h3>{title}</h3>{children}<div className="row"><button className="btn ghost lg" onClick={onNo} disabled={busy}>No</button><button className="btn primary lg" onClick={onYes} disabled={busy} autoFocus>Yes</button></div></div></div>;}
 /** Member list cache for forgiving client-side search (~1k rows). Refreshes when older than 60s. */
 let memberCache={rows:null,at:0,p:null};
+/** Best-effort member row by id from the search cache (null if unavailable). */
+export async function memberById(id){if(!id)return null;try{return (await loadMembers()).find(m=>m.id===id)||null;}catch{return null;}}
 export function invalidateMemberCache(){memberCache={rows:null,at:0,p:null};}
 async function loadMembers(){
  if(memberCache.rows&&Date.now()-memberCache.at<60_000)return memberCache.rows;
@@ -78,6 +82,8 @@ export function SearchPick({onPick,withBookwhen=true,emptyText='No matches',empt
 /** Status tile text + tone for member detail. */
 function statusOf(h){
  if(h.cancelled_at)return {t:'Cancelled',tone:'bad',sub:'on '+new Date(h.cancelled_at).toLocaleDateString('en-GB')};
+ if(isPurchaseUnchecked(h))return {t:'ACTIVE',tone:'ok',sub:'Paid · from purchase email'};
+ if(isUnchecked(h))return {t:'Not checked',tone:'mut',sub:'No Bookwhen check yet'};
  if(h.bw_checked_at)return {t:h.bw_status||'Unknown',tone:h.bw_status==='ACTIVE'?'ok':'bad',sub:h.bw_lcl?'LCL '+String(h.bw_lcl).replace(/^LCL/,''):null};
  if(h.pending_card)return {t:'Card pending',tone:'warn',sub:null};
  return {t:'Not checked',tone:'mut',sub:null};}
@@ -88,7 +94,7 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
  async function save(){if(!dirty){setSt('✓ No changes');setEditing(false);return;}setSt('Saving…');const{error}=await sb.rpc('update_member_name',{p_member_id:h.id,p_first_name:f,p_last_name:l});
   if(error)return setSt('Error: '+error.message);setSt('✓ Saved');setEditing(false);onUpdate&&onUpdate({...h,first_name:f.trim()||null,last_name:l.trim()||null});setTimeout(()=>setSt(s=>s==='✓ Saved'?'':s),2500);}
  function cancelEdit(){setF(cl(h.first_name));setL(cl(h.last_name));setEditing(false);setSt('');}
- const s=statusOf(h);const rn=renewalInfo(h);const t=bwTerm(h);
+ const s=statusOf(h);const unchecked=isUnchecked(h);const rn=unchecked&&!isPurchaseUnchecked(h)?null:renewalInfo(h);const t=bwTerm(h);
  return <div className="selected md-v3"><div className="sel-h"><button type="button" className="btn-back sel-back" onClick={onClear} title="Back to results"><IconArrowLeft/><span>Back</span></button><span>Member details</span></div>
  {h.cancelled_at&&<div className="md-cancel">Membership cancelled on {new Date(h.cancelled_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})} — do not issue a card.</div>}
  <div className="md-head">
@@ -104,19 +110,20 @@ export function Selected({h,onClear,onUpdate,children,extra}){const cl=v=>ph(v)?
      </form>
     :<div className="md-name-row"><h3 className="md-name">{name||(h.email||'(no name)').split('@')[0]}</h3>{editable&&<button type="button" className="md-edit" onClick={()=>setEditing(true)} aria-label="Edit name" title="Edit name"><IconPencil/></button>}</div>}
    {h.email&&<div className="md-email" title={h.email}>{h.email}</div>}
-   {(h.lost_card_at||(h.pending_card&&!h.cancelled_at&&h.bw_checked_at))&&<div className="md-tags">{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}{h.pending_card&&!h.cancelled_at&&h.bw_checked_at&&<span className="chip chip-pend">⏳ Card pending</span>}</div>}
+   {(h.lost_card_at||(h.pending_card&&!h.cancelled_at)||unchecked)&&<div className="md-tags">{unchecked&&<span className="chip chip-unchecked" title="No successful Bookwhen check yet">Unchecked</span>}{h.pending_card&&!h.cancelled_at&&<span className="chip chip-pend">⏳ Card pending</span>}{h.lost_card_at&&<span className="chip chip-warn">⚠ Card lost</span>}</div>}
   </div></div>
  <div className="md-facts">
   <div className={'md-fact md-fact-status tone-'+s.tone}><span className="md-fact-k">Status</span><span className="md-fact-v"><i className="md-dot"/>{s.t}</span>{s.sub&&<span className="md-fact-sub">{s.sub}</span>}</div>
-  <div className="md-fact md-fact-card"><span className="md-fact-k">Card number</span>{h.card_barcode?<span className="md-fact-v md-mono">{h.card_barcode}</span>:<span className="md-fact-v md-card-none">No card linked</span>}</div>
-  <div className={'md-fact md-fact-renew tone-'+(rn?rn.tone:'mut')}><span className="md-renew-ico"><IconCalendar/></span><span className="md-renew-txt"><span className="md-fact-k">{rn?.source==='ends'?'Membership':'Renewal'}</span><span className="md-renew-date">{rn?rn.label:'No renewal date'}</span>{rn&&<span className="md-fact-sub">{rn.rel}{rn.tone==='soon'?' — renewal due soon':rn.tone==='expired'?' — expired':''}</span>}{rn?.endsDiffers&&<span className="md-fact-sub">{rn.endsLabel}</span>}</span></div>
+  <div className="md-fact md-fact-card"><span className="md-fact-k">Card number</span>{h.card_barcode?<span className="md-fact-v md-mono">{h.card_barcode}</span>:h.pending_card&&!h.cancelled_at?<><span className="md-fact-v md-card-none">Card pending</span><span className="md-fact-sub">Needs a card — scan one to link</span></>:<span className="md-fact-v md-card-none">No card linked</span>}</div>
+  <div className={'md-fact md-fact-renew tone-'+(rn?rn.tone:'mut')}><span className="md-renew-ico"><IconCalendar/></span><span className="md-renew-txt"><span className="md-fact-k">{rn?.source==='ends'?'Membership':'Renewal'}</span><span className="md-renew-date">{rn?rn.label:unchecked?'Not checked yet':'No renewal date'}</span>{!rn&&unchecked&&<span className="md-fact-sub">Run Check user to get the renewal date</span>}{rn&&<span className="md-fact-sub">{rn.rel}{rn.tone==='soon'?' — renewal due soon':rn.tone==='expired'?' — expired':''}</span>}{rn?.endsDiffers&&<span className="md-fact-sub">{rn.endsLabel}</span>}{rn&&unchecked&&<span className="md-fact-sub">Provisional (purchase date + 12 months) — Check user gets the real renewal</span>}</span></div>
  </div>
  {(t||h.bookwhen_customer_id)&&<div className="md-links">
   {t&&<a className="btn ghost sm" href={bwSearchUrl(t)} target="_blank" rel="noopener noreferrer" title={`Search Bookwhen Locals for "${t}"`}>Open in Bookwhen <IconExternalLink/></a>}
   {h.bookwhen_customer_id&&<a className="btn ghost sm" href={bwUrl(h.bookwhen_customer_id)} target="_blank" rel="noopener noreferrer">Memberships <IconExternalLink/></a>}</div>}
  {extra&&<div className="sel-extra">{extra}</div>}
+ {editable&&unchecked&&<div className="md-panel md-check-now"><div className="md-label">Check in Bookwhen</div><CheckUser h={h} onUpdate={onUpdate} intro="Not checked yet. Check user looks them up in Bookwhen, marks them Active and adds the Memberships link."/></div>}
  {h.id&&h.src!=='Bookwhen'&&<VisitStats memberId={h.id}/>}
- {editable&&<details className="md-adv"><summary><IconSettings/><span>Advanced</span></summary><div className="md-adv-body"><CheckUser h={h} onUpdate={onUpdate}/></div></details>}
+ {editable&&!unchecked&&<details className="md-adv"><summary><IconSettings/><span>Advanced</span></summary><div className="md-adv-body"><CheckUser h={h} onUpdate={onUpdate}/></div></details>}
  <div className="sel-foot"><div className="sel-left">{children}</div><div className="sel-right">{st&&<span className={st.startsWith('Error')?'err':'ok'}>{st}</span>}
   {editable&&<button className={'btn lg '+(dirty?'primary':'ghost')} disabled={st==='Saving…'} onClick={save}>Save</button>}</div></div></div>;}
 export function UnlinkCard({h,onUnlinked}){const[ask,setAsk]=useState(false);const[busy,setBusy]=useState(false);const[st,setSt]=useState('');
@@ -144,7 +151,7 @@ export function extAttendeeSync(events,onProgress){return new Promise(ok=>{const
   if(e.data.type==='AR_ATTENDEE_SYNC_PROGRESS'){onProgress&&onProgress(e.data.done,e.data.total);return;}
   if(e.data.type==='AR_ATTENDEE_SYNC_RESULT'){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_ATTENDEE_SYNC',reqId,events},location.origin);});}
-export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
+export function CheckUser({h,onUpdate,actions,intro}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');
  useEffect(()=>{setR(null);setErr('');},[h.id]);
  if(!h.id||h.src==='Bookwhen')return actions?<div className="md-actions">{actions}</div>:null;
  const v=r||(h.bw_checked_at?h:null);const em=(h.email||'').trim().toLowerCase();const can=!!h.bookwhen_customer_id||em.includes('@');
@@ -157,7 +164,7 @@ export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);con
   setBusy(false);if(error){setErr(error.message);return;}
   const body={...(data&&data[0]),bw_status:(data&&data[0]?.bw_status)||res.status};setR(body);onUpdate&&onUpdate({...h,...body});}
  return <div className="bw-check">
-  <p className="md-adv-note">Re-check this member's Locals membership in Bookwhen (needs the extension). Status and renewal above update automatically.</p>
+  <p className="md-adv-note">{intro||"Re-check this member's Locals membership in Bookwhen (needs the extension). Status and renewal above update automatically."}</p>
   <div className="md-chips"><span className="md-checked">{v?.bw_checked_at?<>Last checked {ago(v.bw_checked_at)}</>:'Not checked yet'}</span></div>
   {err&&<div className="err md-err">{err}{/session|extension/i.test(err)&&' — use Memberships ↗ to check manually'}<div className="contact-admin">⚠ contact admin - James</div></div>}
   <div className="md-actions"><button type="button" className="btn primary bw-btn md-check" onClick={run} disabled={busy} title={h.bookwhen_customer_id?'Check Locals membership in Bookwhen':can?'Find in Bookwhen by email, check Locals and save CustomerID':'No Bookwhen ID or email — use Open in Bookwhen'}>{busy?'Checking…':'↻ Check user'}</button>{actions}</div>

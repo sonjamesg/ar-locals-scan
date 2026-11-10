@@ -57,11 +57,11 @@ describe('member detail v3 layout',()=>{
     assert.doesNotMatch(sel,/>Ends \{h\.membership_ends_at\}/);
     assert.match(css,/\.md-renew-date\{[^}]*font:800 20px/);
   });
-  it('Check user sits in a closed Advanced section',()=>{
+  it('Check user: prominent when unchecked, otherwise in a closed Advanced section',()=>{
     assert.match(sel,/<details className="md-adv"><summary>[\s\S]*?Advanced[\s\S]*?<CheckUser /);
     assert.doesNotMatch(sel,/<details className="md-adv" open/);
-    const before=sel.slice(0,sel.indexOf('<details'));
-    assert.doesNotMatch(before,/<CheckUser/);
+    assert.match(sel,/\{editable&&unchecked&&<div className="md-panel md-check-now">[\s\S]*?<CheckUser /);
+    assert.match(sel,/\{editable&&!unchecked&&<details/);
   });
   it('Bookwhen links are secondary buttons',()=>{assert.match(sel,/md-links[\s\S]*?btn ghost sm[\s\S]*?Memberships/);});
   it('gym visits use icon tiles + friendly last visit, no raw date list',()=>{

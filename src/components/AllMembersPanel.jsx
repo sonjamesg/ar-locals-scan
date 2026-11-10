@@ -1,16 +1,14 @@
 import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,NewBadge,StatusChip,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,ago} from './Members.jsx';
-import {isNew,isCancelled,isLinked,cardCounts,filterMembers} from '../lib/memberFilters.js';
+import {isNew,isCancelled,isLinked,cardCounts,filterMembers,isUnchecked,isActiveChecked} from '../lib/memberFilters.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
- if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;if(!h.bookwhen_customer_id&&!h.bw_checked_at)return <span className="muted">No CustomerID</span>;
- if(!h.bw_checked_at)return <span className="muted">Not checked</span>;
- return <StatusChip h={h}/>;}
+ if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;return <StatusChip h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const[cf,setCf]=useState('all');const ctl=useRef({});
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
  const patch=(id,p)=>setRows(rs=>rs.map(r=>r.id===id?{...r,...p}:r));
  const eligible=(rows||[]).filter(r=>r.bookwhen_customer_id||(r.email||'').includes('@'));const n=Math.max(1,Math.min(200,parseInt(size==='custom'?custom:size)||1));
- function pick(){const pool=mode==='unchecked'?eligible.filter(r=>!r.bw_checked_at):eligible.slice(Math.max(0,from-1));return pool.slice(0,n);}
+ function pick(){const pool=mode==='unchecked'?eligible.filter(isUnchecked):eligible.slice(Math.max(0,from-1));return pool.slice(0,n);}
  async function start(){if(!window.__arExt)return onMsg({err:1,t:'Extension not detected — install it on this PC and hard-refresh'});
   const list=pick();if(!list.length)return onMsg({t:'Nothing to check in that range'});
   ctl.current={stop:false,pause:false};list.forEach(r=>patch(r.id,{_st:'queued',_err:null}));
@@ -31,7 +29,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
  const busy=run&&!run.done;
  const shown=filterMembers(rows,{status:sf,card:cf,q});
  const cards=cardCounts(rows);
- const unchecked=eligible.filter(r=>!r.bw_checked_at).length,active=(rows||[]).filter(r=>r.bw_status==='ACTIVE'&&!r.cancelled_at).length,cancelled=(rows||[]).filter(isCancelled).length;
+ const unchecked=(rows||[]).filter(isUnchecked).length,active=(rows||[]).filter(isActiveChecked).length,cancelled=(rows||[]).filter(isCancelled).length;
  if(sel)return <section className="panel"><h2>All members</h2><Selected h={sel} onClear={()=>setSel(null)} onUpdate={h=>{setSel(h);patch(h.id,h);}}><MarkLost h={sel} onMarked={h=>{setSel(h);patch(h.id,h);}}/><UnlinkCard h={sel} onUnlinked={h=>{setSel(h);patch(h.id,h);}}/></Selected></section>;
  return <section className="panel"><h2>All members</h2>
   {rows&&<div className="am-stats">
@@ -55,7 +53,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    <div className="bar"><i style={{width:`${100*run.i/run.total}%`}}/></div></div>}
   </div>
   <div className="am-filter" role="toolbar" aria-label="Member filters">
-   {[['all','All'],['active','Active'],['new',`New (${(rows||[]).filter(isNew).length})`],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}
+   {[['all','All'],['active','Active'],['unchecked',`Unchecked (${unchecked})`],['new',`New (${(rows||[]).filter(isNew).length})`],['cancelled','Cancelled']].map(([k,l])=><button key={k} type="button" className={'btn '+(sf===k?'primary':'ghost')+(k==='cancelled'?' f-cancel':'')} onClick={()=>setSf(k)}>{l}</button>)}
    <span className="am-sep" aria-hidden="true"/>
    {[['all',`All cards`],['linked',`Linked (${cards.linked})`],['unlinked',`Unlinked (${cards.unlinked})`]].map(([k,l])=><button key={'c'+k} type="button" className={'btn '+(cf===k?'primary':'ghost')} onClick={()=>setCf(k)} title={k==='unlinked'?'Members still needing a card link':k==='linked'?'Members with an active card':''}>{l}</button>)}
   </div>
