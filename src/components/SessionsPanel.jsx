@@ -5,7 +5,7 @@ import {
   PUBLIC_SCHEDULE_URL,sessionFreshness,sessionLinkLabel,sessionOpenUrl,visibleUpcoming
 } from '../lib/sessions.js';
 import {
-  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent
+  syncEventAllowlist,mergeSnapshots,searchQueryFromAttendeeName,snapshotSummary,attendeesForEvent,MIN_SYNC_EXT,extVersionAtLeast
 } from '../lib/attendeeSync.js';
 import {extAttendeeSync} from './Members.jsx';
 import {IconClock,IconExternalLink} from './Icons.jsx';
@@ -22,7 +22,7 @@ function SessionNames({group, onSearchName}){
   }
   if(group.failed){
     return <div className="sess-names">
-      <div className="sess-names-status muted">Names · last sync failed</div>
+      <div className="sess-names-status muted" title={group.error||''}>Names · sync failed{group.error?` — ${group.error}`:''}</div>
     </div>;
   }
   const n=(group.attendees||[]).length;
@@ -143,7 +143,11 @@ export default function SessionsPanel({onSearchName}){
   async function reSyncAttendees(){
     setSyncErr('');
     if(!window.__arExt){
-      setSyncErr('Extension not installed or outdated — load unpacked extension folder (v1.2.0+), keep Bookwhen signed in, then hard-refresh this desk.');
+      setSyncErr(`Extension not detected — install the Locals Card extension v${MIN_SYNC_EXT}+, keep Bookwhen signed in, then hard-refresh this desk.`);
+      return;
+    }
+    if(!extVersionAtLeast(window.__arExt, MIN_SYNC_EXT)){
+      setSyncErr(`Extension v${window.__arExt} is out of date — names need v${MIN_SYNC_EXT}. Download sonjamesg.github.io/ar-locals-scan/ar-locals-extension.zip, unzip over the old folder, press ↻ Reload on it in chrome://extensions, then hard-refresh this desk.`);
       return;
     }
     if(!allowlist.length){
@@ -165,7 +169,9 @@ export default function SessionsPanel({onSearchName}){
     for(const s of snaps) next=mergeSnapshots(next,s);
     setSnapshots(next);
     const sum=snapshotSummary(next);
-    if(sum.failed && !sum.ok) setSyncErr('Could not read registers — check Bookwhen sign-in and try again.');
+    const firstErr=(snaps.find(x=>x?.status==='failed'&&x.error)||{}).error;
+    if(!snaps.length) setSyncErr('Extension returned no sessions — reload the extension and try again.');
+    else if(sum.failed && !sum.ok) setSyncErr('Could not read registers'+(firstErr?` — ${firstErr}`:'')+'. Check Bookwhen is signed in in this browser and try again.');
     else if(sum.failed) setSyncErr(`Synced ${sum.ok} session(s); ${sum.failed} failed.`);
     else setSyncErr('');
   }

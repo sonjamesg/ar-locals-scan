@@ -1,0 +1,727 @@
+<!DOCTYPE html><html><head><title>Bookwhen</title></head><body>
+<!-- Sanitised from a real Bookwhen /events/{id}/attendances register (structure only; names, ids, ages are fake). -->
+<div class="attendances">
+<table class="full_list attendance_sheet"
+data-controller="table-sorter"
+data-table-sorter-target="table"
+data-sort-path="/events/ev-test-20261110103000/attendances">
+
+
+<thead>
+<tr>
+<th class="booking_ref table-sort-header"
+data-table-sorter-target="header"
+aria-sort=ascending>
+
+<div class="table-sort-header-container">
+<button class="table-sort-button js-table-sort-button"
+data-action="click->table-sorter#sort"
+data-table-sorter-column-name-param="booking_ref">
+Booking
+
+<svg xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 320 512"
+class="table-sort-button__icon">
+<path class="table-sort-button__down-arrow"
+d="M41.05 288.05h238c21.4 0 32.1 25.9 17 41l-119 119a23.9 23.9 0 0 1-33.8.1l-.1-.1-119.1-119c-15.05-15.05-4.4-41 17-41z" />
+<path class="table-sort-button__up-arrow"
+d="M24.05 183.05l119.1-119A23.9 23.9 0 0 1 177 64a.94.94 0 0 1 .1.1l119 119c15.1 15.1 4.4 41-17 41h-238c-21.45-.05-32.1-25.95-17.05-41.05z" />
+</svg>
+</button>
+
+
+</div>
+</th>
+
+
+<th class="attended_status">
+Attended
+</th>
+
+<th class="full_name table-sort-header"
+data-table-sorter-target="header"
+>
+
+<div class="table-sort-header-container">
+<button class="table-sort-button js-table-sort-button"
+data-action="click->table-sorter#sort"
+data-table-sorter-column-name-param="full_name">
+Name
+
+<svg xmlns="http://www.w3.org/2000/svg"
+viewBox="0 0 320 512"
+class="table-sort-button__icon">
+<path class="table-sort-button__down-arrow"
+d="M41.05 288.05h238c21.4 0 32.1 25.9 17 41l-119 119a23.9 23.9 0 0 1-33.8.1l-.1-.1-119.1-119c-15.05-15.05-4.4-41 17-41z" />
+<path class="table-sort-button__up-arrow"
+d="M24.05 183.05l119.1-119A23.9 23.9 0 0 1 177 64a.94.94 0 0 1 .1.1l119 119c15.1 15.1 4.4 41-17 41h-238c-21.45-.05-32.1-25.95-17.05-41.05z" />
+</svg>
+</button>
+
+
+</div>
+</th>
+
+
+<th>
+Age of attendee?
+</th>
+
+<th>
+Child
+</th>
+
+<th>
+Child:Adult Ratio accepted.
+</th>
+
+<th>
+*Can this attendee swim more than 14 metres?
+</th>
+
+
+<th>
+Ticket
+</th>
+
+<th>
+Do you agree to the Activity Disclaimer?
+</th>
+
+
+
+<th>
+<span class="right edit_fields">
+<a title="Edit table columns" data-remote="true" href="/events/ev-test-20261110103000/fields/edit">
+<i class="far fa-edit icon fa-fw" aria-hidden="true"></i>
+</a> </span>
+</th>
+
+</tr>
+</thead>
+
+<tbody data-table-sorter-target="body">
+<tr>
+
+
+<td>
+<a href="/bookings/bkfake000000">REF00</a>
+</td>
+
+
+
+
+
+<td class="attendance_marker unmarked">
+
+
+<div class="print-only">
+<i class="far fa-check-square attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-times-square not_attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-square unmarked_icon icon fa-fw" aria-hidden="true"></i>
+</div>
+
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/atfake000002">
+
+<li>
+<input type="radio" name="atfake000002_attended" id="atfake000002_attended_yes" value="yes" />
+<label class="true_value option_button" for="atfake000002_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Attended: yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000002_attended" id="atfake000002_attended_no" value="no" />
+<label class="false_value option_button" for="atfake000002_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Attended: no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000002_attended" id="atfake000002_attended_unknown" value="unknown" checked="checked" />
+<label class="null_value option_button" for="atfake000002_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Attended: unknown"></i></label>
+</li>
+
+</ul>
+
+
+</td>
+
+
+
+
+
+
+<td>
+Alex Example
+</td>
+
+
+
+
+<td>
+
+40
+
+</td>
+
+
+
+
+<td>
+<span class="no ">No</span>
+</td>
+
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+
+
+
+
+
+
+<td>
+LEISURE PASS Open Swim
+</td>
+
+
+
+
+<td>
+
+<span class="na">n/a</span>
+
+</td>
+
+
+</tr>
+<tr>
+
+
+<td>
+<a href="/bookings/bkfake000000">REF00</a>
+</td>
+
+
+
+
+
+<td class="attendance_marker unmarked">
+
+
+<div class="print-only">
+<i class="far fa-check-square attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-times-square not_attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-square unmarked_icon icon fa-fw" aria-hidden="true"></i>
+</div>
+
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/atfake000000">
+
+<li>
+<input type="radio" name="atfake000000_attended" id="atfake000000_attended_yes" value="yes" />
+<label class="true_value option_button" for="atfake000000_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Attended: yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000000_attended" id="atfake000000_attended_no" value="no" />
+<label class="false_value option_button" for="atfake000000_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Attended: no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000000_attended" id="atfake000000_attended_unknown" value="unknown" checked="checked" />
+<label class="null_value option_button" for="atfake000000_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Attended: unknown"></i></label>
+</li>
+
+</ul>
+
+
+</td>
+
+
+
+
+
+
+<td>
+Sam Example
+</td>
+
+
+
+
+<td>
+
+40
+
+</td>
+
+
+
+
+<td>
+<span class="no ">No</span>
+</td>
+
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+
+
+
+
+
+
+<td>
+LEISURE PASS Open Swim
+</td>
+
+
+
+
+<td>
+
+<span class="na">n/a</span>
+
+</td>
+
+
+</tr>
+<tr>
+
+
+<td>
+<a href="/bookings/bkfake000000">REF00</a>
+</td>
+
+
+
+
+
+<td class="attendance_marker unmarked">
+
+
+<div class="print-only">
+<i class="far fa-check-square attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-times-square not_attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-square unmarked_icon icon fa-fw" aria-hidden="true"></i>
+</div>
+
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/atfake000003">
+
+<li>
+<input type="radio" name="atfake000003_attended" id="atfake000003_attended_yes" value="yes" />
+<label class="true_value option_button" for="atfake000003_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Attended: yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000003_attended" id="atfake000003_attended_no" value="no" />
+<label class="false_value option_button" for="atfake000003_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Attended: no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000003_attended" id="atfake000003_attended_unknown" value="unknown" checked="checked" />
+<label class="null_value option_button" for="atfake000003_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Attended: unknown"></i></label>
+</li>
+
+</ul>
+
+
+</td>
+
+
+
+
+
+
+<td>
+Jordan Sample
+</td>
+
+
+
+
+<td>
+
+40
+
+</td>
+
+
+
+
+<td>
+<span class="yes ">Yes</span>
+</td>
+
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+
+
+
+
+
+
+<td>
+LEISURE PASS Open Swim
+</td>
+
+
+
+
+<td>
+
+<span class="na">n/a</span>
+
+</td>
+
+
+</tr>
+<tr>
+
+
+<td>
+<a href="/bookings/bkfake000000">REF00</a>
+</td>
+
+
+
+
+
+<td class="attendance_marker unmarked">
+
+
+<div class="print-only">
+<i class="far fa-check-square attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-times-square not_attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-square unmarked_icon icon fa-fw" aria-hidden="true"></i>
+</div>
+
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/atfake000004">
+
+<li>
+<input type="radio" name="atfake000004_attended" id="atfake000004_attended_yes" value="yes" />
+<label class="true_value option_button" for="atfake000004_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Attended: yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000004_attended" id="atfake000004_attended_no" value="no" />
+<label class="false_value option_button" for="atfake000004_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Attended: no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000004_attended" id="atfake000004_attended_unknown" value="unknown" checked="checked" />
+<label class="null_value option_button" for="atfake000004_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Attended: unknown"></i></label>
+</li>
+
+</ul>
+
+
+</td>
+
+
+
+
+
+
+<td>
+Riley Demo
+</td>
+
+
+
+
+<td>
+
+40
+
+</td>
+
+
+
+
+<td>
+<span class="no ">No</span>
+</td>
+
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+
+
+
+
+
+
+<td>
+LEISURE PASS Open Swim
+</td>
+
+
+
+
+<td>
+
+<span class="na">n/a</span>
+
+</td>
+
+
+</tr>
+<tr>
+
+
+<td>
+<a href="/bookings/bkfake000000">REF00</a>
+</td>
+
+
+
+
+
+<td class="attendance_marker unmarked">
+
+
+<div class="print-only">
+<i class="far fa-check-square attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-times-square not_attending_icon icon fa-fw" aria-hidden="true"></i>
+<i class="far fa-square unmarked_icon icon fa-fw" aria-hidden="true"></i>
+</div>
+
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/atfake000001">
+
+<li>
+<input type="radio" name="atfake000001_attended" id="atfake000001_attended_yes" value="yes" />
+<label class="true_value option_button" for="atfake000001_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Attended: yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000001_attended" id="atfake000001_attended_no" value="no" />
+<label class="false_value option_button" for="atfake000001_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Attended: no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="atfake000001_attended" id="atfake000001_attended_unknown" value="unknown" checked="checked" />
+<label class="null_value option_button" for="atfake000001_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Attended: unknown"></i></label>
+</li>
+
+</ul>
+
+
+</td>
+
+
+
+
+
+
+<td>
+Casey Fixture
+</td>
+
+
+
+
+<td>
+
+40
+
+</td>
+
+
+
+
+<td>
+<span class="yes ">Yes</span>
+</td>
+
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+<td>
+
+<span class="yes colour_black">Yes</span>
+
+</td>
+
+
+
+
+
+
+
+
+
+<td>
+LEISURE PASS Open Swim
+</td>
+
+
+
+
+<td>
+
+<span class="na">n/a</span>
+
+</td>
+
+
+</tr>
+
+</tbody>
+
+<tfoot>
+<tr>
+
+
+<td class=""></td>
+
+
+
+<td>
+<ul class="tri_state_radio_buttons hide-for-print"
+data-hook="set_attendance"
+data-url="/events/ev-test-20261110103000/attendances/update_all">
+
+<li>
+<input type="radio" name="all_attended" id="all_attended_yes" value="yes" data-confirm="Please confirm you would like to set ALL attendees to be attended YES." />
+
+<label class="true_value option_button" for="all_attended_yes"><i class="fas fa-user-check icon fa-fw" title="Mark all attendances as yes"></i></label>
+</li>
+
+<li>
+<input type="radio" name="all_attended" id="all_attended_no" value="no" data-confirm="Please confirm you would like to set ALL attendees to be NOT attended." />
+
+<label class="false_value option_button" for="all_attended_no"><i class="fas fa-user-slash icon fa-fw" title="Mark all attendances as no"></i></label>
+</li>
+
+<li>
+<input type="radio" name="all_attended" id="all_attended_unknown" value="unknown" data-confirm="Please confirm you would like to REMOVE all attended statuses." />
+
+<label class="null_value option_button" for="all_attended_unknown"><i class="far fa-times-circle icon fa-fw" title="Mark all attendances as unknown"></i></label>
+</li>
+
+</ul>
+</td>
+
+
+
+
+<td class=""></td>
+
+
+
+<td class=""></td>
+
+
+
+<td class=""></td>
+
+
+
+<td class=""></td>
+
+
+
+<td class=""></td>
+
+
+
+
+
+
+
+<td class=""></td>
+
+
+
+<td class="nowrap_whitespace text_right">5 attendees</td>
+
+
+
+<td class="nowrap_whitespace"></td>
+</tr>
+</tfoot>
+
+
+</table>
+</div></body></html>

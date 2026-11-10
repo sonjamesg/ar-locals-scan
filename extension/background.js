@@ -1,22 +1,47 @@
 import { parseSubscriptions, parseDetail, looksLoggedOut, parseCustomerSearch, searchUrl, LOCALS_PRODUCT } from './parse.js';
-import { parseAttendancesHtml, eventIdFromHref } from './parseAttendances.js';
+import { parseAttendancesHtml, eventIdFromHref, registerReady, looksLoggedOutAttendances } from './parseAttendances.js';
 
 const BW = 'https://atlanticreach.bookwhen.com';
 const EVENT_ID_RE = /^ev-[a-z0-9]+-\d{14}$/i;
 
-const wait = (tabId, ms = 20000) => new Promise((ok, no) => {
-  const t = setTimeout(() => { chrome.tabs.onUpdated.removeListener(f); no(new Error('Bookwhen took too long')); }, ms);
-  const f = (id, info) => { if (id === tabId && info.status === 'complete') { clearTimeout(t); chrome.tabs.onUpdated.removeListener(f); ok(); } };
-  chrome.tabs.onUpdated.addListener(f);
-});
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function grab(tabId, url) {
-  await chrome.tabs.update(tabId, { url }); await wait(tabId);
+/** Resolve when the tab has finished loading `url` (not the about:blank it started on). Listener is attached BEFORE navigating. */
+function navigate(tabId, url, ms = 25000) {
+  const target = new URL(url);
+  return new Promise((ok, no) => {
+    let done = false;
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); chrome.tabs.onUpdated.removeListener(f); fn(v); };
+    const onTarget = u => { try { const x = new URL(u || ''); return x.origin === target.origin && x.protocol.startsWith('http'); } catch { return false; } };
+    const t = setTimeout(() => finish(no, new Error('Bookwhen took too long')), ms);
+    const f = (id, info, tab) => { if (id === tabId && info.status === 'complete' && onTarget(tab?.url)) finish(ok); };
+    chrome.tabs.onUpdated.addListener(f);
+    chrome.tabs.update(tabId, { url }).catch(e => finish(no, e));
+  });
+}
+
+async function readPage(tabId) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId },
     func: () => [location.href, document.documentElement.outerHTML],
   });
   return result;
+}
+
+async function grab(tabId, url) {
+  await navigate(tabId, url);
+  return readPage(tabId);
+}
+
+/** Load a register and wait (up to ~8s) for the attendee table / "N attendees" footer to render. */
+async function grabRegister(tabId, url) {
+  await navigate(tabId, url);
+  let page = await readPage(tabId);
+  for (let i = 0; i < 16 && !registerReady(page[1]) && !looksLoggedOutAttendances(page[1]); i++) {
+    await sleep(500);
+    page = await readPage(tabId);
+  }
+  return page;
 }
 
 async function check(customerId, email) {
@@ -46,68 +71,47 @@ async function check(customerId, email) {
   } finally { chrome.tabs.remove(tab.id).catch(() => {}); }
 }
 
-/** Sequential register reads for desk-allowlisted event ids only. */
-async function syncAttendances(events, signal) {
+/** Sequential register reads for desk-allowlisted event ids only. Every requested event gets a result. */
+async function syncAttendances(events) {
   const list = Array.isArray(events) ? events : [];
   const out = [];
-  const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+  const fail = (ev, id, error) => ({
+    event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null, event_end_at: ev.end_at || null,
+    status: 'failed', error, attendees: [], incomplete: true, captured_at: new Date().toISOString(),
+  });
+  let loginError = null;
+  let tab = null;
   try {
-    for (let i = 0; i < list.length; i++) {
-      if (signal?.aborted) throw new Error('Cancelled');
-      const ev = list[i] || {};
+    tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+    for (const raw of list) {
+      const ev = raw || {};
       const id = String(ev.id || '').trim();
-      if (!EVENT_ID_RE.test(id)) {
-        out.push({ event_id: id, status: 'failed', error: 'Invalid event id', attendees: [], incomplete: true, captured_at: new Date().toISOString() });
-        continue;
-      }
-      const url = `${BW}/events/${encodeURIComponent(id)}/attendances`;
+      if (!EVENT_ID_RE.test(id)) { out.push(fail(ev, id, 'Invalid event id')); continue; }
+      if (loginError) { out.push(fail(ev, id, loginError)); continue; }
       try {
-        const [href, html] = await grab(tab.id, url);
-        if (signal?.aborted) throw new Error('Cancelled');
+        const [href, html] = await grabRegister(tab.id, `${BW}/events/${encodeURIComponent(id)}/attendances`);
         const parsed = parseAttendancesHtml(html, href);
-        if (parsed.error && /not signed in/i.test(parsed.error)) {
-          out.push({
-            event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null,
-            status: 'failed', error: parsed.error, attendees: [], incomplete: true,
-            captured_at: new Date().toISOString(),
-          });
-          break; // login required — stop batch
-        }
-        const gotId = parsed.event_id || eventIdFromHref(href) || id;
-        if (gotId !== id) {
-          out.push({
-            event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null,
-            status: 'failed', error: 'Register URL did not match requested event id', attendees: [], incomplete: true,
-            captured_at: new Date().toISOString(),
-          });
-          continue;
-        }
-        const status = parsed.error ? 'failed' : (parsed.incomplete ? 'partial' : 'ok');
+        if (parsed.error && /not signed in/i.test(parsed.error)) { loginError = parsed.error; out.push(fail(ev, id, parsed.error)); continue; }
+        const gotId = parsed.event_id || eventIdFromHref(href);
+        if (gotId && gotId !== id) { out.push(fail(ev, id, 'Bookwhen opened a different register')); continue; }
+        if (!gotId && !/bookwhen\.com/.test(href || '')) { out.push(fail(ev, id, 'Register page did not open (got ' + String(href || '').slice(0, 60) + ')')); continue; }
         out.push({
-          event_id: id,
-          event_title: ev.title || null,
-          event_start_at: ev.start_at || null,
-          event_end_at: ev.end_at || null,
-          status,
-          error: parsed.error || null,
-          warnings: parsed.warnings || [],
-          attendees: parsed.attendees || [],
-          row_count: parsed.row_count,
-          footer_count: parsed.footer_count,
-          incomplete: !!parsed.incomplete,
-          captured_at: new Date().toISOString(),
+          event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null, event_end_at: ev.end_at || null,
+          status: parsed.error ? 'failed' : (parsed.incomplete ? 'partial' : 'ok'),
+          error: parsed.error || null, warnings: parsed.warnings || [],
+          attendees: parsed.attendees || [], row_count: parsed.row_count, footer_count: parsed.footer_count,
+          incomplete: !!parsed.incomplete, captured_at: new Date().toISOString(),
         });
       } catch (e) {
-        if (String(e.message || e) === 'Cancelled') throw e;
-        out.push({
-          event_id: id, event_title: ev.title || null, event_start_at: ev.start_at || null,
-          status: 'failed', error: e.message || String(e), attendees: [], incomplete: true,
-          captured_at: new Date().toISOString(),
-        });
+        out.push(fail(ev, id, e?.message || String(e)));
       }
     }
-  } finally { chrome.tabs.remove(tab.id).catch(() => {}); }
-  return { snapshots: out };
+  } catch (e) {
+    // Tab could not be created — report every remaining event rather than aborting silently
+    const msg = 'Could not open Bookwhen tab: ' + (e?.message || e);
+    for (const raw of list.slice(out.length)) out.push(fail(raw || {}, String(raw?.id || ''), msg));
+  } finally { if (tab) chrome.tabs.remove(tab.id).catch(() => {}); }
+  return { snapshots: out, version: chrome.runtime.getManifest().version };
 }
 
 chrome.runtime.onMessage.addListener((msg, _s, reply) => {
@@ -116,9 +120,7 @@ chrome.runtime.onMessage.addListener((msg, _s, reply) => {
     return true;
   }
   if (msg?.type === 'syncAttendances') {
-    const ac = { aborted: false };
-    // cancel via separate message not wired mid-flight in MV3 easily; desk timeout handles UX
-    syncAttendances(msg.events, ac).then(r => reply({ ok: true, ...r }), e => reply({ error: e.message }));
+    syncAttendances(msg.events).then(r => reply({ ok: true, ...r }), e => reply({ error: e.message }));
     return true;
   }
 });

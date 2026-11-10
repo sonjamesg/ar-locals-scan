@@ -101,7 +101,7 @@ export function extCheck(customerId,email){return new Promise(ok=>{const reqId=M
  const f=e=>{if(e.source===window&&e.data?.type==='AR_CHECK_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_CHECK',reqId,customerId,email},location.origin);});}
 export function extAttendeeSync(events){return new Promise(ok=>{const reqId=Math.random().toString(36).slice(2);
- const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — open a register manually or retry Re-sync'});},180000);
+ const t=setTimeout(()=>{window.removeEventListener('message',f);ok({error:'Extension timed out — open a register manually or retry Re-sync'});},300000);
  const f=e=>{if(e.source===window&&e.data?.type==='AR_ATTENDEE_SYNC_RESULT'&&e.data.reqId===reqId){clearTimeout(t);window.removeEventListener('message',f);ok(e.data);}};
  window.addEventListener('message',f);window.postMessage({type:'AR_ATTENDEE_SYNC',reqId,events},location.origin);});}
 export function CheckUser({h,onUpdate,actions}){const[r,setR]=useState(null);const[busy,setBusy]=useState(false);const[err,setErr]=useState('');

@@ -2,6 +2,13 @@
 import {adminAttendanceUrl,isValidEventId,filterActivitySessions} from './sessions.js';
 
 export const ATTENDEE_SYNC_TIMEOUT_MS=45_000;
+/** Lowest extension version whose register parser handles the live Bookwhen markup. */
+export const MIN_SYNC_EXT='1.2.1';
+export function extVersionAtLeast(v, min){
+  const a=String(v||'').split('.').map(n=>parseInt(n,10)||0), b=String(min).split('.').map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(a.length,b.length);i++){if((a[i]||0)!==(b[i]||0))return (a[i]||0)>(b[i]||0);}
+  return true;
+}
 export const ATTENDEE_SYNC_GAP_MS=600;
 
 /** Events to open registers for: all On now + currently shown Coming up. */
@@ -59,7 +66,7 @@ export function flattenAttendees(snapshots){
 /** One session's snapshot. Missing means not synced — not an empty verified register. */
 export function attendeesForEvent(snapshots, eventId){
   const snap=(snapshots||[]).find(s=>s?.event_id===eventId)||null;
-  if(!snap) return {snapshot:null, attendees:[], failed:false, captured_at:null, incomplete:false, synced:false};
+  if(!snap) return {snapshot:null, attendees:[], failed:false, captured_at:null, incomplete:false, error:null, synced:false};
   const failed=snap.status==='failed';
   return {
     snapshot:snap,
@@ -67,6 +74,7 @@ export function attendeesForEvent(snapshots, eventId){
     failed,
     captured_at:snap.captured_at||null,
     incomplete:!!(snap.incomplete||snap.status==='partial'),
+    error:failed?(snap.error||null):null,
     synced:true,
   };
 }
