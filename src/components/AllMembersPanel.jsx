@@ -1,10 +1,11 @@
 import {useEffect,useRef,useState} from 'react';import {sb} from '../lib.js';import {MemberInfo,MemberRowCells,NewBadge,StatusChip,OpenBtn,Selected,MarkLost,UnlinkCard,extCheck,extGate,ago} from './Members.jsx';
+import {noDash} from '../lib/noDash.js';
 import {ExtWarning} from './ExtensionHelp.jsx';
 import {MIN_CHECK_EXT} from '../lib/attendeeSync.js';
 import {isNew,isCancelled,isLinked,cardCounts,filterMembers,isUnchecked,isActiveChecked} from '../lib/memberFilters.js';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));const DELAY=1500;const WORKERS=5;
 function Status({h}){if(h._st==='checking')return <span className="muted">Checking…</span>;if(h._st==='queued')return <span className="muted">Queued</span>;
- if(h._err)return <span className="err">{h._err} <b className="contact-admin inline">· contact admin - James</b></span>;return <StatusChip h={h}/>;}
+ if(h._err)return <span className="err">{noDash(h._err)} <b className="contact-admin inline">· contact admin - James</b></span>;return <StatusChip h={h}/>;}
 export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(null);const[q,setQ]=useState('');const[sf,setSf]=useState('all');const[size,setSize]=useState('10');const[custom,setCustom]=useState('100');
  const[mode,setMode]=useState('unchecked');const[from,setFrom]=useState(1);const[run,setRun]=useState(null);const[sel,setSel]=useState(null);const[cf,setCf]=useState('all');const ctl=useRef({});const[block,setBlock]=useState(null);
  const load=async()=>{const{data,error}=await sb.rpc('list_members');if(error)onMsg({err:1,t:error.message});setRows(data||[]);};useEffect(()=>{load();},[]);
@@ -27,7 +28,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
     const i=next++;if(i>=list.length)return;await one(list[i]);if(next<list.length&&!ctl.current.stop)await sleep(DELAY);}}
   await Promise.all(Array.from({length:Math.min(WORKERS,list.length)},(_,w)=>worker(w)));
   setRows(rs=>rs.map(r=>r._st==='queued'?{...r,_st:null}:r));const stopped=ctl.current.stop;setRun(r=>({...r,done:true,stopped}));
-  onMsg({t:`${stopped?'Stopped':'Batch done'} — ${ok} checked, ${bad} errors`});if(mode==='range')setFrom(f=>f+list.length);}
+  onMsg({t:`${stopped?'Stopped':'Batch done'}: ${ok} checked, ${bad} errors`});if(mode==='range')setFrom(f=>f+list.length);}
  const busy=run&&!run.done;
  const shown=filterMembers(rows,{status:sf,card:cf,q});
  const cards=cardCounts(rows);
@@ -40,7 +41,7 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
    <div className="am-stat warn"><b>{unchecked}</b><span>Unchecked</span></div>
    <div className="am-stat ok"><b>{active}</b><span>Active</span></div>
    <div className="am-stat bad"><b>{cancelled}</b><span>Cancelled</span></div>
-   <div className="am-stat warn" title="Members with no active card barcode — still need to link"><b>{cards.unlinked}</b><span>Need card</span></div></div>}
+   <div className="am-stat warn" title="Members with no active card barcode, still need to link"><b>{cards.unlinked}</b><span>Need card</span></div></div>}
   <div className="batch-card"><div className="batch" title={`Uses the Check user extension, ${WORKERS} members in parallel (${DELAY/1000}s pause per worker). Members without a CustomerID are looked up by email (CustomerID saved). Keep Bookwhen signed in.`}>
    <label>Batch size<select value={size} onChange={e=>setSize(e.target.value)} disabled={busy}>{['5','10','25','50','100','200'].map(v=><option key={v}>{v}</option>)}<option value="custom">Custom…</option></select></label>
    {size==='custom'&&<label>Count<input type="number" min="1" max="200" value={custom} onChange={e=>setCustom(e.target.value)} disabled={busy}/></label>}
@@ -63,5 +64,5 @@ export default function AllMembersPanel({onMsg}){const[rows,setRows]=useState(nu
   <input className="big-input" value={q} onChange={e=>setQ(e.target.value)} placeholder="Filter list by name, email or LCL…"/>
   <ul className="hits">{rows===null&&<li className="muted">Loading…</li>}
    {shown.slice(0,300).map(h=><li key={h.id} className={'hit-row'+(h._st==='checking'?' checking':'')}><button className="hit hit-grid" onClick={()=>setSel(h)}><MemberRowCells h={h} newBadge={<NewBadge h={h}/>} status={<Status h={h}/>}/></button><OpenBtn h={h}/></li>)}
-   {shown.length>300&&<li className="muted">Showing 300 of {shown.length} — filter to narrow</li>}</ul>
+   {shown.length>300&&<li className="muted">Showing 300 of {shown.length}. Filter to narrow</li>}</ul>
  </section>;}

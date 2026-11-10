@@ -13,7 +13,7 @@ export default function LinkPanel({barcode,onLink}){
       <div className="link-ico" aria-hidden="true"><IconCardLink/></div>
       <div>
         <h2>Link card <code>{barcode}</code> to a member</h2>
-        <p className="link-guide muted">Use the <b>original Locals Card signup email</b> if the name search fails — it can differ from the email they give at reception.</p>
+        <p className="link-guide muted">Use the <b>original Locals Card signup email</b> if the name search fails. It can differ from the email they give at reception.</p>
       </div>
     </div>
     {sel?<Selected h={sel} onClear={()=>setSel(null)} onUpdate={setSel}><MarkLost h={sel} onMarked={setSel}/><UnlinkCard h={sel} onUnlinked={setSel}/><button className="btn ghost lg" onClick={()=>setAsk({t:'link'})}>Link card</button></Selected>:null}
@@ -22,7 +22,7 @@ export default function LinkPanel({barcode,onLink}){
         onPick={setSel}
         label="Find existing member"
         placeholder="Search by name or signup email"
-        emptyText="No matches — try the original signup email or name"
+        emptyText="No matches. Try the original signup email or name"
         emptyGuide={<><b>Cannot find them?</b>{MEMBER_NOT_FOUND_GUIDE}</>}
       />
     </div>

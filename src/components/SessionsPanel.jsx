@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
+import {noDash} from '../lib/noDash.js';
 import {sb} from '../lib.js';
 import {
   capacityLabel,filterActivitySessions,formatAsOf,formatHM,formatSessionRange,partitionSessions,reconcileSessions,
@@ -23,7 +24,7 @@ function SessionNames({group, onSearchName}){
   }
   if(group.failed){
     return <div className="sess-names">
-      <div className="sess-names-status muted" title={group.error||''}>Names · sync failed{group.error?` — ${group.error}`:''}</div>
+      <div className="sess-names-status muted" title={group.error||''}>Names · sync failed{group.error?`: ${noDash(group.error)}`:''}</div>
     </div>;
   }
   const n=(group.attendees||[]).length;
@@ -43,7 +44,7 @@ function SessionNames({group, onSearchName}){
               return <li key={(a.booking_id||'')+':'+a.name+':'+i}>
                 <button type="button" className="sess-name-btn" disabled={!q}
                   onClick={()=>onSearchName&&onSearchName(q)}
-                  title="Search members for this name — confirm before linking a card">
+                  title="Search members for this name. Confirm before linking a card">
                   <span className="sess-name-ico" aria-hidden="true"><IconUser/></span>
                   <span className="sess-name-txt">{a.name}</span>
                 </button>
@@ -87,7 +88,7 @@ export default function SessionsPanel({onSearchName}){
   const[expanded,setExpanded]=useState(false);
   const bust=useRef(0);
 
-  // Attendee re-sync — session-local only; NEVER on mount/poll
+  // Attendee re-sync - session-local only; NEVER on mount/poll
   const[snapshots,setSnapshots]=useState([]);
   const[syncBusy,setSyncBusy]=useState(false);
   const[syncErr,setSyncErr]=useState('');
@@ -154,7 +155,7 @@ export default function SessionsPanel({onSearchName}){
     const gen=++syncGen.current;
     setSyncBusy(true);
     setSyncProg({i:0,total:allowlist.length});
-    // One batch call — extension walks sequentially; progress is coarse
+    // One batch call - extension walks sequentially; progress is coarse
     const res=await extAttendeeSync(allowlist.map(({id,title,start_at,end_at})=>({id,title,start_at,end_at})),(done,total)=>{if(gen===syncGen.current)setSyncProg({i:done,total});});
     if(gen!==syncGen.current) return; // superseded
     setSyncBusy(false);
@@ -167,8 +168,8 @@ export default function SessionsPanel({onSearchName}){
     setSnapshots(next);
     const sum=snapshotSummary(next);
     const firstErr=(snaps.find(x=>x?.status==='failed'&&x.error)||{}).error;
-    if(!snaps.length) setSyncErr('Extension returned no sessions — reload the extension and try again.');
-    else if(sum.failed && !sum.ok) setSyncErr('Could not read registers'+(firstErr?` — ${firstErr}`:'')+'. Check Bookwhen is signed in in this browser and try again.');
+    if(!snaps.length) setSyncErr('Extension returned no sessions. Reload the extension and try again.');
+    else if(sum.failed && !sum.ok) setSyncErr('Could not read registers'+(firstErr?`: ${noDash(firstErr)}`:'')+'. Check Bookwhen is signed in in this browser and try again.');
     else if(sum.failed) setSyncErr(`Synced ${sum.ok} session(s); ${sum.failed} failed.`);
     else setSyncErr('');
   }
@@ -192,7 +193,7 @@ export default function SessionsPanel({onSearchName}){
     </div>
 
     {(showingStale||(asOf&&fresh.stale))&&<div className="sess-warn" role="status">
-      {showingStale?'Refresh failed — showing the last good list':'List may be out of date'}{asOf?` (updated ${formatHM(asOf)})`:''}
+      {showingStale?'Refresh failed. Showing the last good list':'List may be out of date'}{asOf?` (updated ${formatHM(asOf)})`:''}
     </div>}
 
     <div className="sess-att-bar">
@@ -200,9 +201,9 @@ export default function SessionsPanel({onSearchName}){
       {!extProblem&&window.__arExt&&!extVersionAtLeast(window.__arExt,EXT_LATEST)&&<div className="ext-soft">
         Faster extension v{EXT_LATEST} available (syncs 5 sessions at once). <ExtDownloadLink className="foot-fb ext-soft-link" label="Download" onClick={()=>openExtHelp()}/>
       </div>}
-      {syncErr&&<div className="err md-err" role="alert">{syncErr}</div>}
+      {syncErr&&<div className="err md-err" role="alert">{noDash(syncErr)}</div>}
       {sum.ok>0&&<div className="muted sess-att-asof">
-        Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'—'} · {sum.people} name{sum.people===1?'':'s'}
+        Names synced {lastCap?formatHM(new Date(lastCap).toISOString()):'-'} · {sum.people} name{sum.people===1?'':'s'}
         {sum.failed?` · ${sum.failed} failed`:''}{sum.partial?` · ${sum.partial} incomplete`:''}
       </div>}
     </div>
@@ -211,11 +212,11 @@ export default function SessionsPanel({onSearchName}){
       {loading&&!rows.length&&!err&&<div className="muted sess-empty">Loading live sessions…</div>}
       {err&&<div className="err md-err" role="alert">
         {errKind==='missing_token'
-          ? 'Bookwhen API token is not set on the server — live sessions cannot load. Ask James to set BOOKWHEN_API_TOKEN on Supabase.'
+          ? 'Bookwhen API token is not set on the server, so live sessions cannot load. Ask James to set BOOKWHEN_API_TOKEN on Supabase.'
           : err}
         {errKind==='network'&&rows.length===0&&' This is a connection/API error, not “no sessions”.'}
       </div>}
-      {empty&&<div className="muted sess-empty">No sessions on now or coming up (live empty — not an error).</div>}
+      {empty&&<div className="muted sess-empty">No sessions on now or coming up (live empty, not an error).</div>}
 
       {current.length>0&&<>
         <div className="sess-label">On now</div>

@@ -16,6 +16,6 @@ export default function PinGate({children}){
   <h1 id="pin-title">Locals Card Desk</h1><p>Enter your {N}-digit staff PIN to continue</p>
   <div className={`pin-digits ${err?'shake':''}`} onPaste={paste}>{d.map((v,i)=><input key={i} ref={el=>refs.current[i]=el} value={v} onChange={e=>set(i,e.target.value)} onKeyDown={e=>key(i,e)} onFocus={e=>e.target.select()} inputMode="numeric" type="password" maxLength={1} autoComplete="off" placeholder="" aria-label={`PIN digit ${i+1}`} className={`pin-digit ${err?'bad':''}`}/>)}</div>
   <div className="pin-dots" aria-hidden="true">{d.map((v,i)=><span key={i} className={v?'on':''}/>)}</div>
-  <div className="pin-err" aria-live="polite">{err?'Incorrect PIN — please try again':'\u00a0'}</div>
+  <div className="pin-err" aria-live="polite">{err?'Incorrect PIN. Please try again':'\u00a0'}</div>
   <div className="pin-foot"><span>Atlantic Reach Leisure</span><span className="pin-sep"/><span>Staff only</span></div>
  </div></div>;}

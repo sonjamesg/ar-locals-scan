@@ -36,7 +36,7 @@ export function assertAllowlistedIds(requested, allowlist){
   return (requested||[]).filter(id=>ok.has(id));
 }
 
-/** Replace snapshots by event id — never append duplicates. */
+/** Replace snapshots by event id - never append duplicates. */
 export function mergeSnapshots(prev, nextSnap){
   const map=new Map();
   for(const s of prev||[]) if(s?.event_id) map.set(s.event_id,namesOnly(s));
@@ -63,7 +63,7 @@ export function flattenAttendees(snapshots){
   return rows;
 }
 
-/** One session's snapshot. Missing means not synced — not an empty verified register. */
+/** One session's snapshot. Missing means not synced - not an empty verified register. */
 export function attendeesForEvent(snapshots, eventId){
   const snap=(snapshots||[]).find(s=>s?.event_id===eventId)||null;
   if(!snap) return {snapshot:null, attendees:[], failed:false, captured_at:null, incomplete:false, error:null, synced:false};
@@ -79,7 +79,7 @@ export function attendeesForEvent(snapshots, eventId){
   };
 }
 
-/** Split a display name into first/last for Search Users prefill only — not identity proof. */
+/** Split a display name into first/last for Search Users prefill only - not identity proof. */
 export function searchQueryFromAttendeeName(name){
   const n=String(name||'').replace(/\s+/g,' ').trim();
   return n.length>=2?n:'';
@@ -116,7 +116,7 @@ export function extNeed(version, min=MIN_SYNC_EXT){
 export const MIN_CHECK_EXT='1.0.0';
 /** Chromium desktop browser that can load the unpacked extension (Chrome, Edge, Brave…). */
 export function isChromiumUA(ua){ua=ua||'';if(/Firefox|FxiOS|CriOS|EdgiOS/i.test(ua))return false;if(/Android|iPhone|iPad|Mobile/i.test(ua))return false;return /Chrome\/|Chromium\//.test(ua);}
-/** 'browser' | 'missing' | 'outdated' | null — what blocks an extension action. */
+/** 'browser' | 'missing' | 'outdated' | null - what blocks an extension action. */
 export function extBlock(version,min,ua){if(!version&&ua!==undefined&&!isChromiumUA(ua))return 'browser';return extNeed(version,min);}
 /** Wording for the red warning (pure so it can be tested). */
 export function extWarnText(kind,action,min){

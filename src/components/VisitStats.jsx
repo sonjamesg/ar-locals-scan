@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {noDash} from '../lib/noDash.js';
 import {sb} from '../lib.js';
 import {friendlyVisit} from '../lib/visits.js';
 import {IconCalendarCheck,IconLogIn,IconTrend,IconClock} from './Icons.jsx';
@@ -30,7 +31,7 @@ export default function VisitStats({memberId}){
   const earlier=(hist||[]).slice(1,6);
   return <div className="md-panel visit-stats">
     <div className="md-label">Gym visits</div>
-    {err&&<div className="err md-err">{err}</div>}
+    {err&&<div className="err md-err">{noDash(err)}</div>}
     {!st&&!err&&<div className="muted">Loading visits…</div>}
     {st&&<>
       <div className="vs-tiles">

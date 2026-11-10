@@ -1,4 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';import {createRoot} from 'react-dom/client';
+import {noDash} from './lib/noDash.js';
 import './styles.css';import {sb} from './lib.js';
 import Header from './components/Header.jsx';import StatusCard from './components/StatusCard.jsx';import LinkPanel from './components/LinkPanel.jsx';import PinGate from './components/PinGate.jsx';import {LostPanel,QueuePanel,PendingPanel} from './components/LostPanel.jsx';import {label,memberById} from './components/Members.jsx';import {isUnchecked} from './lib/memberFilters.js';import AllMembersPanel from './components/AllMembersPanel.jsx';
 import FeedbackPanel from './components/FeedbackPanel.jsx';
@@ -20,7 +21,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
     const look=await sb.rpc('lookup_card',{p_barcode:b});
     const base=look.data?.[0]||{status:'unknown'};
     setRes({...base,barcode:b,visit:{error:error.message}});
-    setMsg({err:1,t:'Check-in not recorded — '+error.message});
+    setMsg({err:1,t:'Check-in not recorded: '+error.message});
     return;
   }
   if(!row){setRes({status:'unknown',barcode:b});return;}
@@ -28,7 +29,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
   setRes({status:row.status||'unknown',first_name:row.first_name,last_name:row.last_name,membership_ends_at:row.membership_ends_at,member_id:row.member_id,barcode:b,visit});
   if(row.member_id&&row.status==='valid')memberById(row.member_id).then(m=>{if(m&&isUnchecked(m))setRes(r=>r&&r.member_id===row.member_id&&r.barcode===b?{...r,unchecked:true}:r);});
   if(row.status==='valid'&&row.recorded) setMsg({t:'Visit recorded'});
-  else if(row.status==='valid'&&row.suppressed) setMsg({t:'Already checked in — another visit counts after 3 hours'});
+  else if(row.status==='valid'&&row.suppressed) setMsg({t:'Already checked in. Another visit counts after 3 hours'});
   if(row.status&&row.status!=='unknown')focus();}
  const viewRef=useRef(view);viewRef.current=view;const scanRef=useRef(runScan);scanRef.current=runScan;
  useEffect(()=>{let buf='',last=0;const GAP=100;
@@ -67,7 +68,7 @@ function App(){const inp=useRef();const[code,setCode]=useState('');const[res,set
    {view==='all'&&<AllMembersPanel onMsg={setMsg}/>}
    {view==='visits'&&<VisitsPanel onMsg={setMsg}/>}
    {view==='feedback'&&<FeedbackPage onBack={()=>go(prevView||'scan')} onWrite={()=>setFb('compose')}/>}
-   {msg&&<div className={`toast ${msg.err?'err':''}`}>{msg.t}</div>}
+   {msg&&<div className={`toast ${msg.err?'err':''}`}>{noDash(msg.t)}</div>}
   </main><footer className="foot"><span>Atlantic Reach Leisure · Locals Card</span><span className="foot-right"><ExtFooter/><span className="foot-sep" aria-hidden="true">·</span><button type="button" className="foot-fb" onClick={()=>{setFb(null);go('feedback');}}>Feedback</button><span className="foot-ver"> · v2.0</span></span></footer>
   <FeedbackPanel open={fb} onClose={()=>setFb(null)} onSeeAll={()=>go('feedback')}/>
 </div>;}

@@ -49,7 +49,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .btn:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
 .scan-layout{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
 .scan-card,.panel{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:22px;box-shadow:none}
-/* Scan card sizes to its own content — never stretched by a long Sessions list */
+/* Scan card sizes to its own content - never stretched by a long Sessions list */
 .scan-card{display:flex;flex-direction:column;height:auto;min-height:0;box-sizing:border-box;align-self:start}
 /* Status fills the scan card only (equal-ish roomy idle), not the sessions column height */
 .scan-card>.status{flex:0 0 auto;align-self:stretch}
@@ -133,7 +133,7 @@ body{font-family:var(--font);color:var(--txt);background:var(--bg);-webkit-font-
 .not-found-guide{margin-top:14px;padding:14px 16px;border-radius:12px;background:#f4f7f8;border:1.5px solid var(--line);color:#33454d;font-size:14px;line-height:1.45}
 .not-found-guide b{display:block;margin-bottom:4px;color:var(--txt)}
 
-/* PIN lock — clean light */
+/* PIN lock - clean light */
 .pin-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:100;padding:24px}
 .pin-screen::before{display:none}
 .pin-box{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:36px 32px 24px;text-align:center;box-shadow:var(--shadow);width:100%;max-width:400px;animation:none}

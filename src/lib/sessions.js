@@ -1,4 +1,4 @@
-/** Bookwhen desk sessions helpers (Europe/London). Live API rows only — never a fixed timetable. */
+/** Bookwhen desk sessions helpers (Europe/London). Live API rows only - never a fixed timetable. */
 export const SESSION_TZ='Europe/London';
 /** Verified public schedule (unsigned marketing redirects elsewhere; this is the staff schedule host path). */
 export const PUBLIC_SCHEDULE_URL='https://atlanticreach.bookwhen.com/schedules/utxdsfe4hutv';
@@ -10,7 +10,7 @@ export function isValidEventId(id){
   return typeof id==='string' && /^ev-[a-z0-9]+-\d{14}$/i.test(id.trim());
 }
 
-/** Locals card Registration desk event — not an activity class. Exact title only. */
+/** Locals card Registration desk event - not an activity class. Exact title only. */
 export function isRegistrationSession(session){
   const title=String(session?.title??session??'').replace(/\s+/g,' ').trim();
   return title.toLowerCase()==='registration';
@@ -51,7 +51,7 @@ export function partitionSessions(list, now=new Date()){
  */
 export function reconcileSessions(prevList, nextList){
   const next=Array.isArray(nextList)?nextList:[];
-  // Full replace keyed by current response — no merging stale rows
+  // Full replace keyed by current response - no merging stale rows
   const byId=new Map();
   for(const s of next){
     if(!s?.id) continue;
@@ -76,10 +76,10 @@ export function formatSessionRange(startAt, endAt){
   if(!startAt||!endAt) return '';
   const a=formatSessionWhen(startAt,{weekday:true});
   const b=new Date(endAt).toLocaleTimeString('en-GB',{timeZone:SESSION_TZ,hour:'2-digit',minute:'2-digit'});
-  return `${a} – ${b}`;
+  return `${a} - ${b}`;
 }
 
-/** "09:45" — synced-at label without seconds. */
+/** "09:45" - synced-at label without seconds. */
 export function formatHM(iso){
   if(!iso) return '';
   const d=new Date(iso);

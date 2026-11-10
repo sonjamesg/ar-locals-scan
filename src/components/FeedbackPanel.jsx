@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {noDash} from '../lib/noDash.js';
 import {createPortal} from 'react-dom';
 import {sb} from '../lib.js';
 import {normalizeFeedbackBody,normalizeFeedbackAuthor,FEEDBACK_MAX,AUTHOR_MAX} from '../lib/feedback.js';
@@ -79,7 +80,7 @@ export default function FeedbackPanel({open,onClose,onSeeAll}){
           <div className="fb-count">{body.trim().length}/{FEEDBACK_MAX}</div>
         </form>
         <div className="fb-status" aria-live="polite">
-          {err&&<div className="err md-err">{err}</div>}
+          {err&&<div className="err md-err">{noDash(err)}</div>}
           {okMsg&&!err&&<div className="ok fb-ok fb-ok-row">{okMsg}{posted&&<button type="button" className="btn primary sm fb-see" onClick={seeAll}>See feedback</button>}</div>}
         </div>
         <div className="fb-list-foot">

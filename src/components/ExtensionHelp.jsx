@@ -34,8 +34,8 @@ export function ExtInstallModal({open,onClose}){
       <p className="muted ext-sub">Chrome on Windows or Mac · v{EXT_LATEST} · needed for Check user and Re-sync names.</p>
       <ol className="ext-steps">
         <li><b>Download</b> the extension zip. <ExtDownloadLink className="btn primary sm" label="Download extension"/></li>
-        <li><b>Unzip it</b> — double-click the downloaded file. Keep the folder somewhere safe (e.g. Documents); Chrome loads it from there.</li>
-        <li><b>Open Chrome's extensions page</b> — sites can't open it for you, so copy this, paste it into the address bar and press Enter: <CopyAddress/></li>
+        <li><b>Unzip it:</b> double-click the downloaded file. Keep the folder somewhere safe (e.g. Documents); Chrome loads it from there.</li>
+        <li><b>Open Chrome's extensions page:</b> sites can't open it for you, so copy this, paste it into the address bar and press Enter: <CopyAddress/></li>
         <li><b>Turn on Developer mode</b> (switch at the top right).</li>
         <li><b>Click “Load unpacked”</b> and choose the unzipped folder.</li>
         <li><b>Sign in to Bookwhen</b> in this Chrome, then <b>hard-refresh this desk</b> (Ctrl+Shift+R, or ⌘+Shift+R on Mac).</li>

@@ -20,7 +20,7 @@ describe('Search Bookwhen for a Locals membership',()=>{
     assert.match(b,/target="_blank" rel="noopener noreferrer"/);
     assert.match(b,/copyText\(t\)\.then\(setCopied\)/);
     assert.match(b,/Search Bookwhen for a Locals membership/);
-    assert.match(b,/Not found on the desk\. Check Bookwhen — if nothing shows there, they don't have a Locals Card\./);
-    assert.match(b,/copied — paste into Bookwhen search if it isn't filled\./);
+    assert.match(b,/Not found on the desk\. Check Bookwhen\. If nothing shows there, they don't have a Locals Card\./);
+    assert.match(b,/copied\. Paste into Bookwhen search if it isn't filled\./);
   });
 });

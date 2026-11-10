@@ -16,23 +16,23 @@ export default function AddMemberPanel({onMsg}){
    if(r.error&&/function|schema cache|PGRST202/i.test((r.error.message||'')+(r.error.code||'')))
     r=await sb.rpc('link_card',{p_barcode:b,p_first_name:fn,p_last_name:ln||'-',p_email:email,p_ends_at:plus12(f.issued_on)});}
   setBusy(false);setAsk(null);if(r.error)return onMsg({err:1,t:r.error.message});
-  onMsg({t:ask.member?`Card ${b} linked to ${label(ask.member)}`:`Added ${f.first_name} ${f.last_name} — card ${b} linked`});reset();}
+  onMsg({t:ask.member?`Card ${b} linked to ${label(ask.member)}`:`Added ${f.first_name} ${f.last_name}, card ${b} linked`});reset();}
  const cardOk=f.barcode.trim().length>=3&&f.issued_on;
  return <section className="panel"><h2>Add member</h2>
-  <form onSubmit={check} className="row"><input className="big-input" type="email" autoFocus value={f.email} onChange={e=>{set('email')(e);setChecked(false);setExisting(null);}} placeholder="Email (required) — checks for existing member" autoComplete="off"/><button className="btn primary lg" disabled={!okEmail||busy}>Check email</button>{(f.email||checked)&&<button type="button" className="btn ghost lg" onClick={reset}>Clear</button>}</form>
+  <form onSubmit={check} className="row"><input className="big-input" type="email" autoFocus value={f.email} onChange={e=>{set('email')(e);setChecked(false);setExisting(null);}} placeholder="Email (required), checks for existing member" autoComplete="off"/><button className="btn primary lg" disabled={!okEmail||busy}>Check email</button>{(f.email||checked)&&<button type="button" className="btn ghost lg" onClick={reset}>Clear</button>}</form>
   {checked&&<>
-   {existing?.length?<><div className="am-banner warn"><b>Already a member</b><span>This email is in the system — link the card instead of creating a duplicate.</span></div>
+   {existing?.length?<><div className="am-banner warn"><b>Already a member</b><span>This email is in the system. Link the card instead of creating a duplicate.</span></div>
     <div className="row"><input className="big-input" value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off"/><label className="muted">Issued <input type="date" value={f.issued_on} onChange={set('issued_on')}/></label></div>
     <ul className="hits">{existing.map(h=><li key={h.id} className="hit-row"><MemberInfo h={h}/><div className="row"><OpenBtn h={h}/><button className="btn primary" disabled={!cardOk} onClick={()=>setAsk({member:h})}>Link card</button></div></li>)}</ul></>
    :<form className="add" onSubmit={e=>{e.preventDefault();if(cardOk&&f.first_name.trim()&&f.last_name.trim())setAsk({});}}>
     <div className="add-h"><span>// NEW MEMBER</span><span className="add-card">{f.barcode.trim()?<>CARD <code>{f.barcode.trim()}</code></>:'NO CARD YET'}</span></div>
-    <div className="am-banner ok span4"><b>✓ Email is free</b><span>No member with this email — creating a new member.</span></div>
+    <div className="am-banner ok span4"><b>✓ Email is free</b><span>No member with this email. Creating a new member.</span></div>
     <label>First name<input value={f.first_name} onChange={set('first_name')} placeholder="e.g. Jane" required autoFocus/></label>
     <label>Last name<input value={f.last_name} onChange={set('last_name')} placeholder="e.g. Smith" required/></label>
     <label className="span4">Email<output className="until am-email">{email}</output></label>
     <label className="span4">Card barcode<input value={f.barcode} onChange={set('barcode')} placeholder="Scan / type card barcode…" autoComplete="off" required/></label>
     <label>Card issue date<input type="date" value={f.issued_on} max={today()} onChange={set('issued_on')} required/></label>
-    <label title="Uses the Bookwhen renewal date when one is known">Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'—'}</output></label>
+    <label title="Uses the Bookwhen renewal date when one is known">Valid until<output className="until">{f.issued_on?plus12(f.issued_on):'-'}</output></label>
     <div className="add-acts"><button type="button" className="btn ghost" onClick={reset}>Clear</button><button className="btn primary" disabled={!cardOk||!f.first_name.trim()||!f.last_name.trim()}>Done</button></div></form>}
   </>}
   {ask&&<Confirm title="Confirm details?" busy={busy} onNo={()=>setAsk(null)} onYes={save}>

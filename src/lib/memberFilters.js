@@ -6,7 +6,7 @@ export const isCancelled=r=>!!r.cancelled_at||r.bw_status==='CANCELLED';
 /**
  * Unchecked = no successful Bookwhen subscription check yet.
  * A successful "Check user" (save_bw_check) that finds the Locals subscription stores bw_lcl and/or
- * bw_renews_at; one that finds none stores a non-ACTIVE status (e.g. NONE) — both count as checked.
+ * bw_renews_at; one that finds none stores a non-ACTIVE status (e.g. NONE) - both count as checked.
  * Purchase-email members get bw_status='ACTIVE' (they paid) but no LCL/renewal → still unchecked.
  * (Older ingests also stamped bw_checked_at at ingest; that is not a real check, so it is ignored here.)
  */

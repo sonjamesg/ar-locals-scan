@@ -8,7 +8,7 @@ export function londonDateKey(iso,timeZone=VISIT_TZ){
   return new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d); // YYYY-MM-DD
 }
 
-/** Client-side mirror of policy for tests/docs — suppressed scans do not move lastCounted. */
+/** Client-side mirror of policy for tests/docs - suppressed scans do not move lastCounted. */
 export function shouldCountVisit(lastCountedIso, candidateIso, timeZone=VISIT_TZ){
   if(!candidateIso) return {count:false,reason:'missing'};
   if(!lastCountedIso) return {count:true,reason:'first_ever'};

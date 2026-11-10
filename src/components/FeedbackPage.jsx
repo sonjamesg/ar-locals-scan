@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {noDash} from '../lib/noDash.js';
 import {sb} from '../lib.js';
 import {Confirm} from './Members.jsx';
 import {normalizeFeedbackBody,normalizeFeedbackAuthor,formatFeedbackWhen,sortFeedbackNewestFirst,FEEDBACK_MAX,AUTHOR_MAX} from '../lib/feedback.js';
@@ -76,12 +77,12 @@ export default function FeedbackPage({onBack,onWrite}){
       <button type="button" className="btn primary lg" onClick={onWrite}>Write a note</button>
     </div>
     <div className="fb-status" aria-live="polite">
-      {err&&<div className="err md-err">{err}</div>}
+      {err&&<div className="err md-err">{noDash(err)}</div>}
       {okMsg&&!err&&<div className="ok fb-ok">{okMsg}</div>}
     </div>
     <div className="fb-page-list">
       {rows===null&&<div className="muted fb-empty">Loading…</div>}
-      {rows&&!rows.length&&<div className="muted fb-empty">No notes yet — be the first. Use Write a note.</div>}
+      {rows&&!rows.length&&<div className="muted fb-empty">No notes yet. Be the first. Use Write a note.</div>}
       <ul className="fb-list fb-list-page">
         {(rows||[]).map(r=><li key={r.id} className="fb-item">
           {editId===r.id?<>
